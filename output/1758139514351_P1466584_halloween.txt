@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466584.jpg
+Prompt: A static, unnerving wide shot captures a group frozen in forced smiles against a dark, branded wall. The man in the blood-splattered apron and hat, holding a prop chainsaw, twitches, his wide smile faltering. The prop chainsaw whines, its dull plastic blade vibrating violently. His arm snaps forward, chainsaw ripping into the cheerleader’s midriff beside him. A geyser of crimson blood erupts, drenching the white and red uniform, splashing across nearby faces. The Grim Reaper prop to his left jolts, its skeletal hand gripping the scythe's shaft, turning its empty gaze towards the carnage. The clown's painted smile smears into a gaping, horrified scream, yet their eyes gleam with a disturbing, cold delight. The camera slowly dollies forward, framing the chainsaw still embedded, thick blood streaming down the cheerleader's skirt, pooling at her feet as the Reaper’s scythe raises slightly.
+Timestamp: 2025-09-17T20:05:14.350Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758139514351_P1466584_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween AI Photobooth</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="video-container">
+        <video id="main-video" autoplay muted></video>
+        <div id="overlay">
+            <img src="" alt="Halloween Overlay" id="overlay-image">
+        </div>
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Generating spooky magic...</p>
+        </div>
+    </div>
+    
+    <div id="status-indicator" class="hidden">
+        <span id="status-text">Ready</span>
+    </div>
+
+    <!-- Playlist Overlay -->
+    <div id="playlist-overlay" class="collapsed">
+        <div id="playlist-toggle">
+            <span id="playlist-arrow">▶</span>
+            <span>Playlist</span>
+        </div>
+        <div id="playlist-content">
+            <div id="playlist-header">
+                <h3>Current Playlist</h3>
+                <span id="playlist-count">0 videos</span>
+            </div>
+            <div id="playlist-list"></div>
+        </div>
+    </div>
+
+    <!-- Video Gallery -->
+    <div id="video-gallery" class="hidden">
+        <div id="gallery-header">
+            <h2>Video Gallery</h2>
+            <button id="gallery-close" class="close-btn">&times;</button>
+        </div>
+        <div id="gallery-controls">
+            <div id="gallery-actions">
+                <button id="refresh-gallery-btn" class="gallery-control-btn">🔄 Refresh</button>
+                <button id="bulk-select-btn" class="gallery-control-btn">Bulk Select</button>
+                <button id="bulk-delete-btn" class="gallery-control-btn delete hidden">Delete Selected</button>
+                <button id="select-all-btn" class="gallery-control-btn hidden">Select All</button>
+                <button id="cancel-bulk-btn" class="gallery-control-btn hidden">Cancel</button>
+            </div>
+            <div id="thumbnail-scale-control">
+                <label for="thumbnail-scale">Thumbnail Size:</label>
+                <input type="range" id="thumbnail-scale" min="60" max="400" value="300" step="20">
+                <span id="scale-value">300px</span>
+            </div>
+        </div>
+        <div id="gallery-grid"></div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden">
+        <div id="admin-header">
+            <h2>Admin Panel</h2>
+            <button id="admin-close" class="close-btn">&times;</button>
+        </div>
+        <div id="admin-content">
+            <div id="system-stats">
+                <h3>System Status</h3>
+                <div id="stats-content"></div>
+            </div>
+            <div id="admin-actions">
+                <h3>System Actions</h3>
+                <button id="reset-input-btn" class="admin-action-btn reset">Reset Input Processing</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div id="control-panel">
+        <button id="gallery-btn" title="Video Gallery">📽️</button>
+        <button id="admin-btn" title="Admin Panel">⚙️</button>
+        <button id="fullscreen-btn" title="Fullscreen">⛶</button>
+    </div>
+
+    <script src="js/player.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "230a120532423932b8527501b609e5d3ce985488e9814130ab490cc6396ecf7f": {
+    "fileName": "P1466603.jpg",
+    "filePath": "input/P1466603.jpg",
+    "fileHash": "230a120532423932b8527501b609e5d3ce985488e9814130ab490cc6396ecf7f",
+    "fileSize": 1087506,
+    "fileModified": "2025-09-17T20:03:34.516Z",
+    "processedAt": "2025-09-19T09:01:39.522Z",
+    "videoOutput": "./output/1758272499509_P1466603_halloween.mp4",
+    "status": "completed"
+  },
+  "c52dcbf26bcb0587a2dab4a55e9cf86f4978d7669728db09b2da3991a062eda8": {
+    "fileName": "P1466584.jpg",
+    "filePath": "input/P1466584.jpg",
+    "fileHash": "c52dcbf26bcb0587a2dab4a55e9cf86f4978d7669728db09b2da3991a062eda8",
+    "fileSize": 1446672,
+    "fileModified": "2025-09-17T20:03:31.835Z",
+    "processedAt": "2025-09-19T09:01:37.581Z",
+    "videoOutput": "./output/1758272497566_P1466584_halloween.mp4",
+    "status": "completed"
+  },
+  "10bd5302092af6948916a872cd3ab280da39972a4a3c80cf9ac1766e2fcb09e0": {
+    "fileName": "P1466596.jpg",
+    "filePath": "input/P1466596.jpg",
+    "fileHash": "10bd5302092af6948916a872cd3ab280da39972a4a3c80cf9ac1766e2fcb09e0",
+    "fileSize": 891963,
+    "fileModified": "2024-10-29T12:16:43.000Z",
+    "processedAt": "2025-09-19T09:02:33.138Z",
+    "videoOutput": "./output/1758272553063_P1466596_halloween.mp4",
+    "status": "completed"
+  },
+  "0f283f7a987dcf118048862405872d3e122541000fcdfe8d566537c5168303a0": {
+    "fileName": "P1466508.jpg",
+    "filePath": "input/P1466508.jpg",
+    "fileHash": "0f283f7a987dcf118048862405872d3e122541000fcdfe8d566537c5168303a0",
+    "fileSize": 1077068,
+    "fileModified": "2024-10-29T12:16:11.000Z",
+    "processedAt": "2025-09-19T09:02:20.865Z",
+    "videoOutput": "./output/1758272540852_P1466508_halloween.mp4",
+    "status": "completed"
+  },
+  "cea3f319a52aaf5d18135524b987766fd85fdb0ffe36fbcb0d241d197702cb96": {
+    "fileName": "P1466479.jpg",
+    "filePath": "input/P1466479.jpg",
+    "fileHash": "cea3f319a52aaf5d18135524b987766fd85fdb0ffe36fbcb0d241d197702cb96",
+    "fileSize": 1102944,
+    "fileModified": "2024-10-29T12:15:59.000Z",
+    "processedAt": "2025-09-19T09:02:42.955Z",
+    "videoOutput": "./output/1758272562594_P1466479_halloween.mp4",
+    "status": "completed"
+  }
+}

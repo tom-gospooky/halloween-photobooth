@@ -1,0 +1,12 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466479.jpg
+Prompt: One continuous, grim, wide shot locks onto the four figures.
+
+The skeletal hands of the Grim Reaper on the left slowly tighten their grip on the long wooden staff. The Mariachi Skull's painted face remains fixed, but its attached skeleton hand clenches, its bony fingers twitching. The green inflatable alien body engulfing the Astronaut on the right begins to ripple and swell, its texture turning slick.
+
+The Hooded Figure's small, dull scythe suddenly elongates and sharpens, its blade glistening with a predatory edge. It slices forward, tearing a jagged wound across the Astronaut's chest. A geyser of crimson blood splatters across the green alien, staining the Mariachi Skull's white face paint. The camera pushes in slightly as the Astronaut's eyes widen in terror, his mouth agape as blood drips from his lips. The razor-sharp scythe blade hovers, dripping, over his chest, framed by the grinning, blood-streaked faces of the Mariachi Skull and the Hooded Figure.
+Timestamp: 2025-09-18T08:56:17.399Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758185777401_P1466479_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

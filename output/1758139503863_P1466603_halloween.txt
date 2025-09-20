@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466603.jpg
+Prompt: An ominous, slow push-in intensifies on three costumed figures against a dark, branded backdrop. The grim reaper's skeletal arm suddenly lunges, its staff transforming into a razor-sharp scythe, tearing into the blonde figure's chest. Thick crimson blood instantly erupts, splattering across her black top and the background. The man beside her flinches, his painted smile contorting in terror. The reaper's skeletal hand jerks the scythe back, sweeping it horizontally across the man's painted face. His face splits vertically, black and white paint smeared with a geyser of arterial spray. The frame subtly pans right, tracking the descending scythe. The blood-soaked scythe now looms central, its blade dripping heavily, foregrounding the mangled, slumping figures.
+Timestamp: 2025-09-17T20:05:03.863Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758139503863_P1466603_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

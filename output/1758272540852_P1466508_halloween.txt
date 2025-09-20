@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466508.jpg
+Prompt: A grim, wide close-up captures a group of smiling costumed revelers. The unsettling doll mask's wide eyes suddenly narrow, a grotesque rictus forming on its fixed face. A gloved hand from the doll-masked figure snatches the red trident from the devil-horned woman's grip. Red face paint streaks with fresh crimson as she screams, falling backward out of frame. The doll-masked figure raises the dripping trident high, its plastic eyes gleaming. Shadows deepen across the blood-splattered, 'SPOOKY HALLOWEEN' banner. The shiny red velvet of the fallen devil costume darkens, soaked in fresh blood. The trident descends.
+Timestamp: 2025-09-19T09:02:20.852Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758272540852_P1466508_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

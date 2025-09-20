@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466479.jpg
+Prompt: A grim, wide shot holds on four costumed figures against a dark, banner-clad wall. The skeletal Reaper on the left suddenly jerks its large wooden scythe forward. The mariachi's painted face contorts in terror as the blade slashes his torso. Dark blood instantly stains his vibrant costume. The inflatable green alien costume rapidly inflates, pushing the astronaut backward. The hooded figure on the right lunges, its smaller scythe glinting. It rips into the astronaut's white suit, tearing fabric and flesh. Viscous green goo and crimson blood erupt from the astronaut's body. The camera slowly pushes in, framing the gushing wound. The Reaper raises its large scythe high, dripping with fresh gore.
+Timestamp: 2025-09-19T09:02:42.567Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758272562594_P1466479_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

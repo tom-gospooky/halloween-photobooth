@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466603.jpg
+Prompt: A grim, static medium shot captures three costumed figures. A skeletal reaper on the left slowly turns its hooded head towards the blonde woman. Its bony hands tighten on the weathered wooden staff. The woman's painted smile falters, her eyes widening in sudden terror. The reaper lunges forward, the staff swinging in a blur. The camera jolts as the staff impacts the woman's chest. Crimson blood erupts, splattering across the man's shocked face. The woman crumples, her body spasming briefly on the dark floor. The reaper stands over her, the staff dripping viscous red. The man stares, frozen in absolute horror.
+Timestamp: 2025-09-19T09:01:39.506Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758272499509_P1466603_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466584.jpg
+Prompt: An ominous wide shot captures a group of grinning figures posing against a dark backdrop. A man in a bloody apron and straw hat grins, clutching a toy chainsaw. His eyes suddenly go dead; the chainsaw vibrates, its blade spinning to life. He lunges forward, the whirring blade tearing into the blonde cheerleader's torso. Blood erupts in a crimson spray, soaking her white and red uniform. Her face contorts in shock as she collapses, dragging others down. The camera pushes in, framing the chainsaw blade, now dripping scarlet onto the floor. Partygoers recoil in terror, their festive makeup smeared with fresh gore. A grim reaper figure in the background slowly raises its staff, a skeletal hand gripping tight. The frame tightens on the stained chainsaw, its teeth still churning, reflecting the chaos.
+Timestamp: 2025-09-19T09:01:37.565Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758272497566_P1466584_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

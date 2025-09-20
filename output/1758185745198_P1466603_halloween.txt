@@ -1,0 +1,10 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466603.jpg
+Prompt: Ominous, fixed medium shot.
+
+A woman with stark clown makeup and a faux fur jacket stands beside a man in a black suit, his face similarly painted. A cloaked skeletal figure looms behind the woman, gripping a thick wooden staff. The skeletal hand abruptly clenches the staff, bone knuckles whitening. The robed figure lurches forward, its empty eye sockets fixed on the woman. The staff snaps upward, then plunges down into the woman's shoulder with a sickening thud, puncturing the fur and flesh. Dark red blood instantly blossoms across her black jacket, soaking into the faux fur as she gasps, eyes wide. The camera subtly pushes in, focusing on the impaled wound and the expanding crimson. The man beside her remains unnervingly still, his painted smile undisturbed, staring straight ahead as the blood streams. The staff handle quivers, impaled deep, dripping viscous blood onto the woman's chest as her eyes roll back.
+Timestamp: 2025-09-18T08:55:45.197Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758185745198_P1466603_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

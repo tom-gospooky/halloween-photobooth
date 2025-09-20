@@ -1,0 +1,36 @@
+{
+  "name": "halloween-ai-photobooth",
+  "version": "1.0.0",
+  "description": "AI-powered Halloween photobooth that transforms photos into spooky animations",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "setup": "node scripts/setup-manual.js",
+    "test": "node test/test-workflow.js",
+    "test:clean": "node test/test-workflow.js --cleanup",
+    "test:single-use": "node test/test-single-use.js",
+    "test:txt-copy": "node test/test-txt-copy.js"
+  },
+  "dependencies": {
+    "@fal-ai/client": "^1.6.2",
+    "@google/generative-ai": "^0.15.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "halloween",
+    "photobooth",
+    "ai",
+    "video-generation"
+  ],
+  "author": "GoSpooky",
+  "license": "MIT"
+}

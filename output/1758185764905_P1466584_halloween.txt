@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466584.jpg
+Prompt: An ominous, static wide shot fixes on the smiling cluster of costumed figures. The man in the blood-splattered apron’s plastic chainsaw *suddenly roars to life*, its teeth glowing a malevolent red. He *snaps* the whirring chainsaw *upwards*, *ripping* through the smiling cheerleader's stomach. A geyser of dark, arterial blood *explodes* from her, *drenching* her white uniform and the clown's face. The grim reaper prop on the far left *lurches forward*, its skeletal hand *gripping* a real, rusted scythe. The reaper's scythe *arcs* swiftly, *slicing* through the neck of the blonde woman holding the can, severing her head clean. Her body *crashes* to the ground, a headless fountain of crimson. The camera *jerks* slightly, the remaining figures' smiles *contorting* into wide, silent screams. The man in the blood-splattered apron *swings* the still-whirring chainsaw towards the camera, spraying a final crimson arc. The frame *freezes* on the chainsaw's bloody teeth, red light pulsing.
+Timestamp: 2025-09-18T08:56:04.903Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758185764905_P1466584_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

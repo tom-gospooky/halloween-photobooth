@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466596.jpg
+Prompt: A grim, medium shot holds three figures posing: a red-hatted gnome, a skeleton-faced figure in bloodied overalls, and a blue-hatted gnome. A bony hand gripping a crude wooden staff emerges further from the dark left edge. The staff scrapes harshly along the red gnome's back. The red gnome stiffens, its eyes widening with dread. The camera pushes in, revealing the full skeletal figure now leaning into frame, its dark robe billowing. Its bony fingers twist into the blue-hatted gnome's shoulder, yanking it violently backward. The blue gnome lets out a silent, gaping scream as its red hat falls. The skeletal figure's staff lifts, then brutally smashes down on the blue gnome's head. Dark red liquid gushes, splattering the skeleton-faced figure's overalls and face. The staff rises again, dripping, as the blue gnome slumps into the encroaching shadows.
+Timestamp: 2025-09-19T09:02:33.047Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758272553063_P1466596_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

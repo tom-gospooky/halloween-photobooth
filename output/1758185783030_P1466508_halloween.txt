@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466508.jpg
+Prompt: Tight, ominous one-take. Six costumed figures cram together against a 'SPOOKY HALLOWEEN' backdrop. The red-faced devil grins, clutching a plastic trident. A creepy doll mask stares unsettlingly beside a person in a white dress with a small facial wound. Suddenly, the masked figure in the red tracksuit whips an unseen hand forward. It smashes the red-faced devil's head against the wall. Blood splatters across the black backdrop. The devil's body collapses, dragging down the person in the white dress. Simultaneously, the skeleton figure's boney hand tears at the doll-masked face. The camera pushes in, revealing a gaping, bloody tear across the doll's cheek, exposing raw flesh underneath. The red-faced devil's body hangs limply, crimson blood streaks dripping slowly down the dark wall.
+Timestamp: 2025-09-18T08:56:23.027Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758185783030_P1466508_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.

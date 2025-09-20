@@ -1,0 +1,8 @@
+# Halloween Video - WAN 2.2 Turbo Generated
+Generated from: P1466596.jpg
+Prompt: An ominous, static medium shot frames three costumed figures in an uneasy tableau. The red-hatted gnome, left, and the blue-hatted gnome, right, stand with arms draped around a central skull-painted figure in denim overalls. A skeletal arm, clutching a heavy wooden staff, slowly extends further into frame from the far left. The central skull-painted figure’s painted grin widens unnaturally as its arm around the blue-hatted gnome tenses. The staff swings down with brutal force, smashing into the red-hatted gnome's temple. Crimson spray erupts onto the dark backdrop as the gnome collapses, its white beard now soaked red. Simultaneously, the skull-painted figure yanks the blue-hatted gnome's head backward with a sickening snap. The camera slowly pushes in on the skull-painted figure, its face now smeared with fresh blood, a gleeful, unblinking stare fixed directly forward over the two broken figures.
+Timestamp: 2025-09-18T08:55:57.069Z
+Model: WAN 2.2 Turbo via fal.ai
+Video file: 1758185757071_P1466596_halloween.mp4
+
+This video was successfully generated using WAN 2.2 Turbo image-to-video AI.
