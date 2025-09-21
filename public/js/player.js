@@ -1,6 +1,9 @@
 class HalloweenPhotobooth {
     constructor() {
         this.video = document.getElementById('main-video');
+        this.canvas = document.getElementById('glitch-canvas');
+        this.overlay = document.getElementById('overlay');
+        this.screenOverlay = document.getElementById('screen-overlay');
         this.loading = document.getElementById('loading');
         this.statusIndicator = document.getElementById('status-indicator');
         this.statusText = document.getElementById('status-text');
@@ -48,11 +51,21 @@ class HalloweenPhotobooth {
         this.isPlayingScreensaver = false;
         this.pollInterval = 5000; // 5 seconds
 
+        // Video transition system
+        this.videoTransition = null;
+        this.isTransitioning = false;
+
         this.init();
     }
     
     async init() {
         try {
+            console.log('🎮 Initializing Halloween Photobooth with GlitchMemories transition...');
+
+            // Initialize video transition system
+            this.videoTransition = new VideoGlitchTransition(this.video);
+            this.canvas.style.display = 'none'; // Hide the old canvas
+
             await this.loadScreensaverVideos();
             await this.loadOutputVideos();
             this.startPolling();
@@ -94,6 +107,8 @@ class HalloweenPhotobooth {
             if (e.key === 'Escape') {
                 this.hideGallery();
                 this.hideAdmin();
+            } else if (e.key === 'h' || e.key === 'H') {
+                this.toggleHideUI();
             }
         });
 
@@ -187,18 +202,45 @@ class HalloweenPhotobooth {
             console.log('Video ended, playing next video...');
             this.playNextVideo();
         });
-        
+
         this.video.addEventListener('error', (e) => {
             console.error('Video error:', e);
             this.playNextVideo();
         });
-        
+
         this.video.addEventListener('loadstart', () => {
             this.showLoading();
         });
-        
+
         this.video.addEventListener('canplay', () => {
             this.hideLoading();
+            this.updateOverlayDimensions();
+
+            // Update glitch transition system when video is ready (disabled for now)
+            // if (this.glitchTransition && this.video.readyState >= 2) {
+            //     this.glitchTransition.setCurrentVideo(this.video);
+            // }
+        });
+
+        this.video.addEventListener('loadedmetadata', () => {
+            this.updateOverlayDimensions();
+        });
+
+        // Handle next video preparation (disabled while fixing video playback)
+        // this.video.addEventListener('timeupdate', () => {
+        //     // Start preparing next video when current video has 3 seconds left
+        //     if (this.video.duration && !isNaN(this.video.duration)) {
+        //         const timeLeft = this.video.duration - this.video.currentTime;
+        //         if (timeLeft <= 3 && timeLeft > 2.9 && !this.isTransitioning && !this.nextVideo) {
+        //             console.log('⏰ Preparing next video - 3 seconds remaining');
+        //             this.prepareNextVideo();
+        //         }
+        //     }
+        // });
+
+        // Update overlay on window resize
+        window.addEventListener('resize', () => {
+            this.updateOverlayDimensions();
         });
     }
     
@@ -250,6 +292,18 @@ class HalloweenPhotobooth {
     async playVideo(videoData) {
         try {
             const videoUrl = `/api/video/${videoData.id}`;
+
+            // If there's a current video playing, start GlitchMemories transition
+            if (this.videoTransition && this.video.src && this.video.src !== videoUrl && !this.isTransitioning) {
+                this.isTransitioning = true;
+
+                // Start the GlitchMemories transition
+                await this.videoTransition.startTransition(videoUrl);
+
+                this.isTransitioning = false;
+            }
+
+            // Standard video playback
             this.video.src = videoUrl;
             await this.video.play();
 
@@ -260,10 +314,87 @@ class HalloweenPhotobooth {
             if (!this.isPlayingScreensaver) {
                 this.updateStatus(`Playing: ${videoData.name}`);
             }
+
+            console.log('🎬 Now playing:', videoData.name);
         } catch (error) {
             console.error('Failed to play video:', error);
             this.playNextVideo();
         }
+    }
+
+    prepareNextVideo() {
+        if (this.isTransitioning) return;
+
+        // Get the next video that will be played
+        let nextVideoData;
+        if (this.videoQueue.length === 0) {
+            if (this.screensaverVideos.length > 0) {
+                const randomIndex = Math.floor(Math.random() * this.screensaverVideos.length);
+                nextVideoData = this.screensaverVideos[randomIndex];
+            } else {
+                return;
+            }
+        } else {
+            const nextIndex = this.currentVideoIndex % this.videoQueue.length;
+            nextVideoData = this.videoQueue[nextIndex];
+        }
+
+        // Create a hidden video element to preload the next video
+        if (this.nextVideo) {
+            this.nextVideo.remove();
+        }
+
+        this.nextVideo = document.createElement('video');
+        this.nextVideo.style.position = 'absolute';
+        this.nextVideo.style.opacity = '0';
+        this.nextVideo.style.pointerEvents = 'none';
+        this.nextVideo.style.zIndex = '-1';
+        this.nextVideo.muted = true;
+        this.nextVideo.src = `/api/video/${nextVideoData.id}`;
+
+        document.body.appendChild(this.nextVideo);
+
+        console.log('🎬 Preloading next video:', nextVideoData.name);
+    }
+
+    async startGlitchTransition(videoData) {
+        if (!this.nextVideo || this.isTransitioning) return;
+
+        this.isTransitioning = true;
+        console.log('🔥 Starting horror glitch transition');
+
+        // Load the next video if not already loaded
+        if (this.nextVideo.readyState < 2) {
+            await new Promise((resolve) => {
+                this.nextVideo.addEventListener('canplay', resolve, { once: true });
+            });
+        }
+
+        // Start the transition
+        this.glitchTransition.startTransition(this.video, this.nextVideo);
+
+        // Wait for transition to complete
+        await new Promise((resolve) => {
+            const checkTransition = () => {
+                if (!this.glitchTransition.isTransitioning) {
+                    resolve();
+                } else {
+                    setTimeout(checkTransition, 100);
+                }
+            };
+            checkTransition();
+        });
+
+        // Swap the video sources
+        const tempSrc = this.video.src;
+        this.video.src = this.nextVideo.src;
+
+        // Clean up
+        this.nextVideo.remove();
+        this.nextVideo = null;
+        this.isTransitioning = false;
+
+        console.log('✨ Horror glitch transition completed');
     }
     
     shuffleQueue() {
@@ -701,6 +832,45 @@ class HalloweenPhotobooth {
         } else {
             document.exitFullscreen();
         }
+    }
+
+    toggleHideUI() {
+        document.body.classList.toggle('hide-ui');
+    }
+
+    updateOverlayDimensions() {
+        if (!this.video.videoWidth || !this.video.videoHeight) {
+            return;
+        }
+
+        const containerWidth = window.innerWidth;
+        const containerHeight = window.innerHeight;
+        const videoAspectRatio = this.video.videoWidth / this.video.videoHeight;
+        const containerAspectRatio = containerWidth / containerHeight;
+
+        let displayWidth, displayHeight;
+
+        // Calculate actual video display dimensions with object-fit: contain
+        if (videoAspectRatio > containerAspectRatio) {
+            // Video is wider than container - width is constrained
+            displayWidth = containerWidth;
+            displayHeight = containerWidth / videoAspectRatio;
+        } else {
+            // Video is taller than container - height is constrained
+            displayHeight = containerHeight;
+            displayWidth = containerHeight * videoAspectRatio;
+        }
+
+        // Update overlay dimensions to match visible video area
+        this.overlay.style.width = `${displayWidth}px`;
+        this.overlay.style.height = `${displayHeight}px`;
+
+        // Update screen overlay dimensions as well
+        this.screenOverlay.style.width = `${displayWidth}px`;
+        this.screenOverlay.style.height = `${displayHeight}px`;
+
+        console.log(`Video dimensions: ${this.video.videoWidth}x${this.video.videoHeight}`);
+        console.log(`Display dimensions: ${displayWidth}x${displayHeight}`);
     }
 
     formatFileSize(bytes) {

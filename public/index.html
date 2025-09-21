@@ -9,8 +9,12 @@
 <body>
     <div id="video-container">
         <video id="main-video" autoplay muted></video>
+        <canvas id="glitch-canvas"></canvas>
         <div id="overlay">
             <img src="" alt="Halloween Overlay" id="overlay-image">
+        </div>
+        <div id="screen-overlay">
+            <img src="screensaver/grindhouse_02.gif" alt="Screen Effect" id="screen-effect">
         </div>
         <div id="loading" class="hidden">
             <div class="spinner"></div>
@@ -85,6 +89,7 @@
         <button id="fullscreen-btn" title="Fullscreen">⛶</button>
     </div>
 
+    <script src="js/videoTransition.js"></script>
     <script src="js/player.js"></script>
 </body>
 </html>
