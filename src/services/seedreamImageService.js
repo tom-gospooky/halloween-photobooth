@@ -1,5 +1,4 @@
 import { fal } from '@fal-ai/client';
-import { getImageDimensions } from '../utils/imageUtils.js';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';

@@ -72,8 +72,8 @@ export class FalWan25Service {
         await this.initialize();
       }
 
-      // Extract filename for metadata
-      const originalFileName = imagePath.split('/').pop();
+      // Extract filename (not used here; metadata is written later)
+      // const originalFileName = imagePath.split('/').pop();
 
       // Convert local image to base64 data URI for FAL
       const imageBuffer = fs.readFileSync(imagePath);
@@ -112,8 +112,7 @@ export class FalWan25Service {
 
         await this.downloadVideo(result.data.video.url, outputPath, log);
 
-        // Create metadata .txt file for successful WAN 2.5 generation
-        await this.createMetadataFile(outputPath, originalFileName, prompt);
+        // No temp metadata creation here; final metadata is written when moving to output
 
         return {
           success: true,
@@ -237,36 +236,7 @@ export class FalWan25Service {
     }
   }
 
-  async createMetadataFile(videoPath, originalFileName, prompt, finalVideoName = null) {
-    try {
-      const metadataPath = videoPath.replace('.mp4', '.json');
-      const videoFileName = finalVideoName || videoPath.split('/').pop();
-
-      const metadata = {
-        model: 'wan-2.5-preview',
-        modelName: 'WAN 2.5 Preview',
-        provider: 'fal.ai',
-        type: 'image-to-video',
-        source: {
-          originalFileName: originalFileName,
-          uploadedAt: new Date().toISOString()
-        },
-        generation: {
-          prompt: prompt,
-          videoFile: videoFileName,
-          generatedAt: new Date().toISOString()
-        }
-      };
-
-      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-
-      return metadataPath;
-    } catch (error) {
-      console.error('⚠️ Failed to create metadata file:', error.message);
-      // Don't throw - metadata file failure shouldn't break video generation
-      return null;
-    }
-  }
+  // Temp metadata creation removed — output metadata is created by FileWatcherService
 
   getMimeTypeFromPath(imagePath) {
     const ext = imagePath.split('.').pop().toLowerCase();
