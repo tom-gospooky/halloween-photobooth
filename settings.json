@@ -1,0 +1,44 @@
+{
+  "videoModel": "kling-v2.5-turbo",
+  "duration": "5",
+  "imageVariations": 1,
+  "seedream": {
+    "numImages": 1,
+    "imageSize": "1024x1024",
+    "maxImages": 1,
+    "seed": 12345,
+    "syncMode": false,
+    "enableSafetyChecker": false
+  },
+  "wan-2.2-turbo": {
+    "numFrames": 150,
+    "framesPerSecond": 25,
+    "resolution": "720p",
+    "aspectRatio": "16:9",
+    "negativePrompt": "",
+    "seed": null,
+    "numInferenceSteps": 27,
+    "guidanceScale": 3.5,
+    "interpolatorModel": "film",
+    "videoQuality": "high"
+  },
+  "wan-2.5-preview": {
+    "resolution": "720p",
+    "duration": "5",
+    "negativePrompt": "",
+    "enablePromptExpansion": true,
+    "seed": null,
+    "audioUrl": null
+  },
+  "kling-v2.5-turbo": {
+    "duration": "5",
+    "aspectRatio": "16:9",
+    "negativePrompt": "blur, distort, and low quality",
+    "cfgScale": 0.5,
+    "tailImageUrl": null
+  },
+  "kling": {
+    "duration": 5,
+    "aspectRatio": "16:9"
+  }
+}

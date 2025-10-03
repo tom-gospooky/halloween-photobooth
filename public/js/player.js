@@ -34,12 +34,27 @@ class HalloweenPhotobooth {
         this.disabledVideos = new Set();
         this.currentPlayingIndex = -1;
 
-        // Admin elements
-        this.adminPanel = document.getElementById('admin-panel');
-        this.adminBtn = document.getElementById('admin-btn');
-        this.adminClose = document.getElementById('admin-close');
+        // Admin elements (merged into settings panel)
         this.statsContent = document.getElementById('stats-content');
         this.resetInputBtn = document.getElementById('reset-input-btn');
+
+        // Settings elements
+        this.settingsPanel = document.getElementById('settings-panel');
+        this.settingsBtn = document.getElementById('settings-btn');
+        this.settingsClose = document.getElementById('settings-close');
+        this.videoModelSelect = document.getElementById('video-model-select');
+        this.modelInfo = document.getElementById('model-info');
+        this.saveSettingsBtn = document.getElementById('save-settings-btn');
+
+        // Simplified settings controls
+        this.videoDurationSelect = document.getElementById('video-duration-select');
+        this.imageVariationsSlider = document.getElementById('image-variations');
+        this.variationsValue = document.getElementById('variations-value');
+
+        // Legacy Kling options (kept for backward compatibility)
+        this.klingOptions = document.getElementById('kling-options');
+        this.klingDurationSelect = document.getElementById('kling-duration-select');
+        this.klingAspectSelect = document.getElementById('kling-aspect-select');
 
         // Other controls
         this.fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -94,10 +109,25 @@ class HalloweenPhotobooth {
         // Playlist events
         this.playlistToggle.addEventListener('click', () => this.togglePlaylist());
 
-        // Admin events
-        this.adminBtn.addEventListener('click', () => this.showAdmin());
-        this.adminClose.addEventListener('click', () => this.hideAdmin());
+        // Admin actions (merged)
         this.resetInputBtn.addEventListener('click', () => this.resetInputProcessing());
+
+        // Settings events
+        this.settingsBtn.addEventListener('click', () => this.showSettings());
+        this.settingsClose.addEventListener('click', () => this.hideSettings());
+        this.videoModelSelect.addEventListener('change', (e) => {
+            this.updateModelInfo(e.target.value);
+            this.toggleKlingOptions(e.target.value);
+        });
+
+        // Simplified settings: Duration and Image Variations
+        if (this.imageVariationsSlider && this.variationsValue) {
+            this.imageVariationsSlider.addEventListener('input', (e) => {
+                this.variationsValue.textContent = e.target.value;
+            });
+        }
+
+        this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
 
         // Fullscreen event
         this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
@@ -106,7 +136,7 @@ class HalloweenPhotobooth {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideGallery();
-                this.hideAdmin();
+                this.hideSettings();
             } else if (e.key === 'h' || e.key === 'H') {
                 this.toggleHideUI();
             }
@@ -119,9 +149,11 @@ class HalloweenPhotobooth {
             }
         });
 
-        this.adminPanel.addEventListener('click', (e) => {
-            if (e.target === this.adminPanel) {
-                this.hideAdmin();
+        // (admin panel merged; no separate overlay handler)
+
+        this.settingsPanel.addEventListener('click', (e) => {
+            if (e.target === this.settingsPanel) {
+                this.hideSettings();
             }
         });
     }
@@ -717,19 +749,8 @@ class HalloweenPhotobooth {
         }
     }
 
-    // Admin Methods
-    showAdmin() {
-        this.adminPanel.classList.remove('hidden');
-        this.populateAdmin();
-    }
-
-    hideAdmin() {
-        this.adminPanel.classList.add('hidden');
-    }
-
-    async populateAdmin() {
-        await this.populateSystemStats();
-    }
+    // Admin Methods (merged)
+    async populateAdmin() { await this.populateSystemStats(); }
 
     async populateSystemStats() {
         try {
@@ -809,8 +830,8 @@ class HalloweenPhotobooth {
                         this.populateGallery();
                     }
 
-                    // Refresh admin panel if open
-                    if (!this.adminPanel.classList.contains('hidden')) {
+                    // Refresh system stats if menu is open
+                    if (!this.settingsPanel.classList.contains('hidden')) {
                         this.populateAdmin();
                     }
 
@@ -914,6 +935,144 @@ class HalloweenPhotobooth {
             // Re-enable the button
             this.resetInputBtn.disabled = false;
             this.resetInputBtn.textContent = 'Reset Input Processing';
+        }
+    }
+
+    // Settings Panel Methods
+    async showSettings() {
+        this.settingsPanel.classList.remove('hidden');
+        await this.loadSettings();
+        await this.populateSystemStats();
+    }
+
+    hideSettings() {
+        this.settingsPanel.classList.add('hidden');
+    }
+
+    async loadSettings() {
+        try {
+            const response = await fetch('/api/settings');
+            const settings = await response.json();
+
+            if (settings.videoModel) {
+                this.videoModelSelect.value = settings.videoModel;
+                this.updateModelInfo(settings.videoModel);
+                this.toggleKlingOptions(settings.videoModel);
+            }
+
+            // Load simplified settings
+            if (settings.duration && this.videoDurationSelect) {
+                this.videoDurationSelect.value = String(settings.duration);
+            }
+
+            if (settings.imageVariations && this.imageVariationsSlider && this.variationsValue) {
+                this.imageVariationsSlider.value = settings.imageVariations;
+                this.variationsValue.textContent = settings.imageVariations;
+            }
+
+            // Legacy Kling options (backward compatibility)
+            if (settings.kling) {
+                const { duration, aspectRatio } = settings.kling;
+                if (duration && this.klingDurationSelect) this.klingDurationSelect.value = String(duration);
+                if (aspectRatio && this.klingAspectSelect) this.klingAspectSelect.value = aspectRatio;
+            }
+        } catch (error) {
+            console.error('Failed to load settings:', error);
+        }
+    }
+
+    updateModelInfo(modelId) {
+        const modelDescriptions = {
+            'wan-2.2-turbo': {
+                name: 'WAN 2.2 Turbo',
+                type: 'Image-to-Video',
+                description: 'Fast image-to-video generation with good quality. Current default model.',
+                features: ['16:9 aspect ratio', '720p resolution', 'Quick generation']
+            },
+            'wan-2.5-preview': {
+                name: 'WAN 2.5 Preview',
+                type: 'Image-to-Video',
+                description: 'Latest WAN model with improved motion and quality.',
+                features: ['Multiple resolutions (480p-1080p)', '5-10 second duration', 'Enhanced motion generation']
+            },
+            'kling-v2.5-turbo': {
+                name: 'Kling Video v2.5 Turbo Pro',
+                type: 'Image-to-Video',
+                description: 'Image-conditioned video generation using Kling 2.5 Turbo Pro.',
+                features: ['5-10 second videos', 'Multiple aspect ratios', 'Uses source image as reference']
+            }
+        };
+
+        const model = modelDescriptions[modelId];
+        if (model) {
+            this.modelInfo.innerHTML = `
+                <h4>${model.name}</h4>
+                <p class="model-type"><strong>Type:</strong> ${model.type}</p>
+                <p class="model-description">${model.description}</p>
+                <div class="model-features">
+                    <strong>Features:</strong>
+                    <ul>
+                        ${model.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+    }
+
+    async saveSettings() {
+        try {
+            this.saveSettingsBtn.disabled = true;
+            this.saveSettingsBtn.textContent = 'Saving...';
+
+            const settings = {
+                videoModel: this.videoModelSelect.value
+            };
+
+            // Add simplified settings
+            if (this.videoDurationSelect) {
+                settings.duration = this.videoDurationSelect.value;
+            }
+
+            if (this.imageVariationsSlider) {
+                settings.imageVariations = parseInt(this.imageVariationsSlider.value, 10);
+            }
+
+            // Legacy Kling options (backward compatibility)
+            if (this.klingDurationSelect && this.klingAspectSelect) {
+                settings.kling = {
+                    duration: parseInt(this.klingDurationSelect.value, 10),
+                    aspectRatio: this.klingAspectSelect.value
+                };
+            }
+
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            });
+
+            if (response.ok) {
+                this.updateStatus('Settings saved successfully');
+                this.hideSettings();
+            } else {
+                this.updateStatus('Failed to save settings');
+            }
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            this.updateStatus('Failed to save settings');
+        } finally {
+            this.saveSettingsBtn.disabled = false;
+            this.saveSettingsBtn.textContent = 'Save Settings';
+        }
+    }
+
+    toggleKlingOptions(modelId) {
+        if (modelId === 'kling-v2.5-turbo') {
+            this.klingOptions.style.display = 'block';
+        } else {
+            this.klingOptions.style.display = 'none';
         }
     }
 }

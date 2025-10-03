@@ -2,7 +2,7 @@ import { fal } from '@fal-ai/client';
 import fs from 'fs';
 import https from 'https';
 
-export class FalWanService {
+export class FalKlingService {
   constructor(settingsService = null) {
     this.apiKey = process.env.FAL_KEY;
     this.isInitialized = false;
@@ -20,18 +20,18 @@ export class FalWanService {
         credentials: this.apiKey
       });
 
-      console.log('✅ FAL WAN 2.2 Turbo service initialized');
+      console.log('✅ FAL Kling Video v2.5 Turbo Pro service initialized');
       this.isInitialized = true;
       return true;
     } catch (error) {
-      console.error('❌ Failed to initialize FAL WAN service:', error.message);
+      console.error('❌ Failed to initialize FAL Kling service:', error.message);
       return false;
     }
   }
 
   async generateVideo(prompt, imagePath, options = {}) {
     try {
-      console.log('🎬 Generating video with WAN 2.2 Turbo...');
+      console.log('🎬 Generating video with Kling Video v2.5 Turbo Pro (image-to-video)...');
 
       if (!this.isInitialized) {
         await this.initialize();
@@ -40,66 +40,73 @@ export class FalWanService {
       // Extract filename for metadata
       const originalFileName = imagePath.split('/').pop();
 
-      // Convert local image to base64 data URI for FAL
+      // Convert local image to base64 data URI for FAL image-to-video
       const imageBuffer = fs.readFileSync(imagePath);
-      const imageBase64 = imageBuffer.toString('base64');
       const mimeType = this.getMimeTypeFromPath(imagePath);
       const imageDataUri = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
 
-      console.log('📸 Image converted to data URI for WAN');
+      console.log('📸 Image converted to data URI for Kling');
       console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
 
-      // Use provided options or defaults
-      // FPS and frames use API defaults for best quality
-      const input = {
+      // Try known endpoint variants with minimal required inputs
+      const candidates = [];
+
+      // Build input with provided options or defaults
+      const baseImgToVid = {
         image_url: imageDataUri,
-        prompt: prompt,
-        resolution: options.resolution || "720p",
-        aspect_ratio: options.aspectRatio || "16:9",
-        enable_safety_checker: false, // Allow horror content
-        expand_prompt: true // Let WAN enhance the prompt
-        // num_frames, frames_per_second, etc. use API defaults
+        prompt,
+        duration: String(options?.duration || '5'),
+        aspect_ratio: options?.aspectRatio || '16:9',
+        negative_prompt: 'blur, distort, and low quality'
       };
 
-      const result = await fal.run("fal-ai/wan/v2.2-a14b/image-to-video/turbo", { input });
+      candidates.push({ id: "fal-ai/kling-video/v2.5-turbo/pro/image-to-video", input: baseImgToVid });
+      candidates.push({ id: "fal-ai/kling-video/v2.5-turbo/image-to-video", input: baseImgToVid });
 
-      // API call successful, processing response
+      let lastError = null;
+      for (const cand of candidates) {
+        try {
+          console.log(`🧪 Trying Kling endpoint: ${cand.id}`);
+          const result = await fal.run(cand.id, { input: cand.input });
 
-      if (result && result.data && result.data.video && result.data.video.url) {
-        console.log('✅ WAN 2.2 Turbo video generation completed');
+          const url = result?.data?.video?.url || result?.data?.output?.video?.url || result?.data?.url;
+          if (!url) {
+            throw new Error(`No video URL in response from ${cand.id}`);
+          }
 
-        // Download the video from the URL
-        const timestamp = Date.now();
-        const outputPath = `./temp/wan_video_${timestamp}.mp4`;
+          console.log('✅ Kling generation completed');
+          const timestamp = Date.now();
+          const outputPath = `./temp/kling_video_${timestamp}.mp4`;
+          await this.downloadVideo(url, outputPath);
+          await this.createMetadataFile(outputPath, originalFileName, prompt);
 
-        await this.downloadVideo(result.data.video.url, outputPath);
-
-        // Create metadata .txt file for successful WAN generation
-        await this.createMetadataFile(outputPath, originalFileName, prompt);
-
-        return {
-          success: true,
-          model: 'wan-2.2-turbo',
-          outputPath: outputPath,
-          size: fs.statSync(outputPath).size,
-          mimeType: 'video/mp4'
-        };
-      } else {
-        throw new Error(`No video URL in WAN response. Got: ${JSON.stringify(result)}`);
+          return {
+            success: true,
+            model: 'kling-v2.5-turbo',
+            outputPath,
+            size: fs.statSync(outputPath).size,
+            mimeType: 'video/mp4'
+          };
+        } catch (err) {
+          console.warn(`⚠️  Kling endpoint failed: ${cand.id} → ${err.message}`);
+          lastError = err;
+        }
       }
+      // If all candidates failed
+      throw lastError || new Error('Kling generation failed');
 
     } catch (error) {
-      console.error('❌ WAN 2.2 Turbo generation failed:', error.message);
+      console.error('❌ Kling Video v2.5 Turbo Pro image-to-video failed:', error.message);
       return {
         success: false,
         error: error.message,
-        model: 'wan-2.2-turbo'
+        model: 'kling-v2.5-turbo'
       };
     }
   }
 
   async downloadVideo(videoUrl, outputPath) {
-    console.log('⬇️ Downloading video from WAN...');
+    console.log('⬇️ Downloading video from Kling...');
 
     return new Promise((resolve, reject) => {
       https.get(videoUrl, (response) => {
@@ -132,8 +139,8 @@ export class FalWanService {
       const videoFileName = finalVideoName || videoPath.split('/').pop();
 
       const metadata = {
-        model: 'wan-2.2-turbo',
-        modelName: 'WAN 2.2 Turbo',
+        model: 'kling-v2.5-turbo',
+        modelName: 'Kling Video v2.5 Turbo Pro',
         provider: 'fal.ai',
         type: 'image-to-video',
         source: {
@@ -176,17 +183,16 @@ export class FalWanService {
   // Test method to verify service functionality
   async testService() {
     try {
-      console.log('🧪 Testing FAL WAN 2.2 Turbo service...');
+      console.log('🧪 Testing FAL Kling Video v2.5 Turbo Pro service...');
 
       if (!await this.initialize()) {
         return { success: false, error: 'Initialization failed' };
       }
 
-      // We would need a test image for a full test
-      console.log('✅ FAL WAN service initialized successfully');
+      console.log('✅ FAL Kling service initialized successfully');
       return {
         success: true,
-        message: 'Service ready - needs test image for full video generation test'
+        message: 'Service ready - needs test prompt for full video generation test'
       };
 
     } catch (error) {

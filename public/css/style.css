@@ -569,7 +569,7 @@ body {
 }
 
 /* Admin Panel */
-#admin-panel {
+#admin-panel, #settings-panel {
     position: fixed;
     top: 0;
     left: 0;
@@ -581,7 +581,7 @@ body {
     padding: 20px;
 }
 
-#admin-header {
+#admin-header, #settings-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -589,12 +589,12 @@ body {
     color: white;
 }
 
-#admin-header h2 {
+#admin-header h2, #settings-header h2 {
     color: #ff6b35;
     font-size: 28px;
 }
 
-#admin-content {
+#admin-content, #settings-content {
     display: flex;
     flex-direction: column;
     gap: 30px;
@@ -669,12 +669,189 @@ body {
     border-top: 1px solid rgba(255, 107, 53, 0.3);
 }
 
+/* Settings Panel */
+#settings-content h3 {
+    color: #ff6b35;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    color: #ff6b35;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* Setting sections for merged settings panel */
+#model-settings,
+#duration-settings,
+#image-settings {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+#model-settings h3,
+#duration-settings h3,
+#image-settings h3 {
+    color: #ff6b35;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.setting-note {
+    font-size: 13px;
+    color: #aaa;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+#video-model-select,
+#video-duration-select {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 107, 53, 0.1);
+    border: 2px solid rgba(255, 107, 53, 0.5);
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#video-model-select:hover {
+    border-color: rgba(255, 107, 53, 0.8);
+    background: rgba(255, 107, 53, 0.2);
+}
+
+#video-model-select:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: rgba(255, 107, 53, 0.2);
+}
+
+#video-model-select option {
+    background: #1a1a1a;
+    color: white;
+    padding: 10px;
+}
+
+.model-info {
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.model-info h4 {
+    color: #ff6b35;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.model-info .model-type {
+    color: #ffa500;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Image Variations Range Slider */
+#image-variations {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 107, 53, 0.2);
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+    accent-color: #ff6b35;
+}
+
+#image-variations:hover {
+    opacity: 1;
+}
+
+#image-variations::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ff6b35;
+    cursor: pointer;
+}
+
+#image-variations::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ff6b35;
+    cursor: pointer;
+    border: none;
+}
+
+#variations-value {
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+    color: #ff6b35;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: 10px;
+}
+
+.model-info .model-description {
+    color: #ccc;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.model-info .model-features {
+    color: white;
+}
+
+.model-info .model-features strong {
+    color: #ff6b35;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.model-info .model-features ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.model-info .model-features li {
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.model-info .model-features li:before {
+    content: "▸";
+    color: #ff6b35;
+    position: absolute;
+    left: 0;
+}
+
 /* Hide UI mode - hides all UI elements except video and overlay */
 body.hide-ui #status-indicator,
 body.hide-ui #control-panel,
 body.hide-ui #playlist-overlay,
 body.hide-ui #video-gallery,
 body.hide-ui #admin-panel,
+body.hide-ui #settings-panel,
 body.hide-ui #loading {
     display: none !important;
 }
@@ -720,7 +897,8 @@ body.hide-ui #loading {
     }
 
     #video-gallery,
-    #admin-panel {
+    #admin-panel,
+    #settings-panel {
         padding: 10px;
     }
 }

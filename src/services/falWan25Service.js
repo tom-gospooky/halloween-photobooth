@@ -2,7 +2,7 @@ import { fal } from '@fal-ai/client';
 import fs from 'fs';
 import https from 'https';
 
-export class FalWanService {
+export class FalWan25Service {
   constructor(settingsService = null) {
     this.apiKey = process.env.FAL_KEY;
     this.isInitialized = false;
@@ -20,18 +20,18 @@ export class FalWanService {
         credentials: this.apiKey
       });
 
-      console.log('✅ FAL WAN 2.2 Turbo service initialized');
+      console.log('✅ FAL WAN 2.5 Preview service initialized');
       this.isInitialized = true;
       return true;
     } catch (error) {
-      console.error('❌ Failed to initialize FAL WAN service:', error.message);
+      console.error('❌ Failed to initialize FAL WAN 2.5 service:', error.message);
       return false;
     }
   }
 
   async generateVideo(prompt, imagePath, options = {}) {
     try {
-      console.log('🎬 Generating video with WAN 2.2 Turbo...');
+      console.log('🎬 Generating video with WAN 2.5 Preview...');
 
       if (!this.isInitialized) {
         await this.initialize();
@@ -42,64 +42,61 @@ export class FalWanService {
 
       // Convert local image to base64 data URI for FAL
       const imageBuffer = fs.readFileSync(imagePath);
-      const imageBase64 = imageBuffer.toString('base64');
       const mimeType = this.getMimeTypeFromPath(imagePath);
       const imageDataUri = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
 
-      console.log('📸 Image converted to data URI for WAN');
+      console.log('📸 Image converted to data URI for WAN 2.5');
       console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
 
       // Use provided options or defaults
-      // FPS and frames use API defaults for best quality
       const input = {
         image_url: imageDataUri,
         prompt: prompt,
-        resolution: options.resolution || "720p",
-        aspect_ratio: options.aspectRatio || "16:9",
+        resolution: options.resolution || "1080p",
+        duration: parseInt(options.duration || "5"),
         enable_safety_checker: false, // Allow horror content
-        expand_prompt: true // Let WAN enhance the prompt
-        // num_frames, frames_per_second, etc. use API defaults
+        enable_prompt_expansion: true  // Use LLM enhancement
       };
 
-      const result = await fal.run("fal-ai/wan/v2.2-a14b/image-to-video/turbo", { input });
+      const result = await fal.run("fal-ai/wan-25-preview/image-to-video", { input });
 
       // API call successful, processing response
 
       if (result && result.data && result.data.video && result.data.video.url) {
-        console.log('✅ WAN 2.2 Turbo video generation completed');
+        console.log('✅ WAN 2.5 Preview video generation completed');
 
         // Download the video from the URL
         const timestamp = Date.now();
-        const outputPath = `./temp/wan_video_${timestamp}.mp4`;
+        const outputPath = `./temp/wan25_video_${timestamp}.mp4`;
 
         await this.downloadVideo(result.data.video.url, outputPath);
 
-        // Create metadata .txt file for successful WAN generation
+        // Create metadata .txt file for successful WAN 2.5 generation
         await this.createMetadataFile(outputPath, originalFileName, prompt);
 
         return {
           success: true,
-          model: 'wan-2.2-turbo',
+          model: 'wan-2.5-preview',
           outputPath: outputPath,
           size: fs.statSync(outputPath).size,
           mimeType: 'video/mp4'
         };
       } else {
-        throw new Error(`No video URL in WAN response. Got: ${JSON.stringify(result)}`);
+        throw new Error(`No video URL in WAN 2.5 response. Got: ${JSON.stringify(result)}`);
       }
 
     } catch (error) {
-      console.error('❌ WAN 2.2 Turbo generation failed:', error.message);
+      console.error('❌ WAN 2.5 Preview generation failed:', error.message);
       return {
         success: false,
         error: error.message,
-        model: 'wan-2.2-turbo'
+        model: 'wan-2.5-preview'
       };
     }
   }
 
   async downloadVideo(videoUrl, outputPath) {
-    console.log('⬇️ Downloading video from WAN...');
+    console.log('⬇️ Downloading video from WAN 2.5...');
 
     return new Promise((resolve, reject) => {
       https.get(videoUrl, (response) => {
@@ -132,8 +129,8 @@ export class FalWanService {
       const videoFileName = finalVideoName || videoPath.split('/').pop();
 
       const metadata = {
-        model: 'wan-2.2-turbo',
-        modelName: 'WAN 2.2 Turbo',
+        model: 'wan-2.5-preview',
+        modelName: 'WAN 2.5 Preview',
         provider: 'fal.ai',
         type: 'image-to-video',
         source: {
@@ -176,14 +173,13 @@ export class FalWanService {
   // Test method to verify service functionality
   async testService() {
     try {
-      console.log('🧪 Testing FAL WAN 2.2 Turbo service...');
+      console.log('🧪 Testing FAL WAN 2.5 Preview service...');
 
       if (!await this.initialize()) {
         return { success: false, error: 'Initialization failed' };
       }
 
-      // We would need a test image for a full test
-      console.log('✅ FAL WAN service initialized successfully');
+      console.log('✅ FAL WAN 2.5 service initialized successfully');
       return {
         success: true,
         message: 'Service ready - needs test image for full video generation test'

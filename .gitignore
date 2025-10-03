@@ -6,3 +6,6 @@ credentials/
 temp/
 uploads/
 dist/
+\n+# Media inputs and generated outputs
+input/
+output/

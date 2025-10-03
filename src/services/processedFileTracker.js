@@ -7,6 +7,8 @@ export class ProcessedFileTracker {
     this.trackingFile = './processed-files.json';
     this.processedFiles = new Map();
     this.isInitialized = false;
+    // Rate limit 'currently processing' logs to avoid spam
+    this._lastProcessingLog = new Map();
   }
 
   async initialize() {
@@ -162,7 +164,12 @@ export class ProcessedFileTracker {
           return false;
         }
 
-        console.log(`🔄 File currently being processed: ${fileName}`);
+        // Throttle log to once per minute per file
+        const last = this._lastProcessingLog.get(fileHash) || 0;
+        if (Date.now() - last > 60 * 1000) {
+          console.log(`🔄 File currently being processed: ${fileName}`);
+          this._lastProcessingLog.set(fileHash, Date.now());
+        }
         return true;
       }
     }

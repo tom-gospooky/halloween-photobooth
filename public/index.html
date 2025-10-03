@@ -64,17 +64,63 @@
         <div id="gallery-grid"></div>
     </div>
 
-    <!-- Admin Panel -->
-    <div id="admin-panel" class="hidden">
-        <div id="admin-header">
-            <h2>Admin Panel</h2>
-            <button id="admin-close" class="close-btn">&times;</button>
+    <!-- Settings & Admin Panel (Merged) -->
+    <div id="settings-panel" class="hidden">
+        <div id="settings-header">
+            <h2>Settings</h2>
+            <button id="settings-close" class="close-btn">&times;</button>
         </div>
-        <div id="admin-content">
+        <div id="settings-content">
+            <!-- Video Model Selection -->
+            <div id="model-settings">
+                <h3>Video Generation</h3>
+                <div class="setting-group">
+                    <label for="video-model-select">Model:</label>
+                    <select id="video-model-select">
+                        <option value="wan-2.2-turbo">WAN 2.2 Turbo</option>
+                        <option value="wan-2.5-preview">WAN 2.5 Preview (1080p)</option>
+                        <option value="kling-v2.5-turbo">Kling v2.5 Turbo</option>
+                    </select>
+                </div>
+                <div class="model-info" id="model-info">
+                    <p>Aspect ratio: Auto-detected from input image (fallback: 16:9)</p>
+                </div>
+            </div>
+
+            <!-- Duration Settings -->
+            <div id="duration-settings">
+                <h3>Video Duration</h3>
+                <div class="setting-group">
+                    <label for="video-duration-select">Duration:</label>
+                    <select id="video-duration-select">
+                        <option value="5">5 seconds</option>
+                        <option value="10">10 seconds</option>
+                    </select>
+                </div>
+                <p class="setting-note">Only applies to WAN 2.5 and Kling models</p>
+            </div>
+
+            <!-- Image Editing Settings -->
+            <div id="image-settings">
+                <h3>Image Editing (Seedream)</h3>
+                <div class="setting-group">
+                    <label for="image-variations">Number of Variations:</label>
+                    <input type="range" id="image-variations" min="1" max="4" value="1" step="1">
+                    <span id="variations-value">1</span>
+                </div>
+                <p class="setting-note">Generate multiple edited image versions</p>
+            </div>
+
+            <!-- Save Button -->
+            <button id="save-settings-btn" class="admin-action-btn">Save Settings</button>
+
+            <!-- System Status -->
             <div id="system-stats">
                 <h3>System Status</h3>
                 <div id="stats-content"></div>
             </div>
+
+            <!-- System Actions -->
             <div id="admin-actions">
                 <h3>System Actions</h3>
                 <button id="reset-input-btn" class="admin-action-btn reset">Reset Input Processing</button>
@@ -85,7 +131,7 @@
     <!-- Control Panel -->
     <div id="control-panel">
         <button id="gallery-btn" title="Video Gallery">📽️</button>
-        <button id="admin-btn" title="Admin Panel">⚙️</button>
+        <button id="settings-btn" title="Menu">⚙️</button>
         <button id="fullscreen-btn" title="Fullscreen">⛶</button>
     </div>
 

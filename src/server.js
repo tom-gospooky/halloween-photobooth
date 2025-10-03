@@ -7,6 +7,7 @@ import { LocalStorageService } from './services/localStorageService.js';
 import { PhotoAnalysisService } from './services/photoAnalysisService.js';
 import { VideoGenerationService } from './services/videoGenerationService.js';
 import { FileWatcherService } from './services/fileWatcherService.js';
+import { SettingsService } from './services/settingsService.js';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use('/screensaver', express.static(path.join(__dirname, '..', 'screensaver')));
 
 let services = {};
 
@@ -28,8 +30,14 @@ async function initializeServices() {
     services.localStorage = new LocalStorageService();
     await services.localStorage.initialize();
 
+    // Load persisted settings
+    services.settings = new SettingsService();
+    await services.settings.load();
+
     services.photoAnalysis = new PhotoAnalysisService();
-    services.videoGeneration = new VideoGenerationService();
+    // Pass settings service to video generation
+    services.videoGeneration = new VideoGenerationService(services.settings);
+    await services.videoGeneration.initialize();
 
     services.fileWatcher = new FileWatcherService(
       services.localStorage,
@@ -195,6 +203,121 @@ app.post('/api/admin/reset-input', async (req, res) => {
   } catch (error) {
     console.error('Error resetting input:', error);
     res.status(500).json({ error: 'Failed to reset input processing history' });
+  }
+});
+
+// Settings API endpoints
+// Get all settings with schema
+app.get('/api/settings', (req, res) => {
+  try {
+    const settings = services.settings.getSettings();
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// Get settings schema for UI generation
+app.get('/api/settings/schema', (req, res) => {
+  try {
+    const schema = services.settings.getSchema();
+    res.json(schema);
+  } catch (error) {
+    console.error('Error fetching settings schema:', error);
+    res.status(500).json({ error: 'Failed to fetch settings schema' });
+  }
+});
+
+// Update all settings
+app.post('/api/settings', async (req, res) => {
+  try {
+    const newSettings = req.body;
+
+    // Validate settings
+    const validation = services.settings.validate(newSettings);
+    if (!validation.valid) {
+      return res.status(400).json({
+        error: 'Invalid settings',
+        validationErrors: validation.errors
+      });
+    }
+
+    // Save settings
+    const success = await services.settings.save(newSettings);
+
+    if (success) {
+      // Update video model if changed
+      if (newSettings.videoModel) {
+        await services.videoGeneration.setModel(newSettings.videoModel);
+      }
+
+      res.json({
+        success: true,
+        message: 'Settings updated successfully',
+        settings: services.settings.getSettings()
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to save settings' });
+    }
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    res.status(500).json({ error: 'Failed to save settings' });
+  }
+});
+
+// Update specific model settings
+app.post('/api/settings/:model', async (req, res) => {
+  try {
+    const { model } = req.params;
+    const modelSettings = req.body;
+
+    const validModels = ['wan-2.2-turbo', 'wan-2.5-preview', 'kling-v2.5-turbo', 'seedream'];
+    if (!validModels.includes(model)) {
+      return res.status(400).json({ error: `Invalid model: ${model}` });
+    }
+
+    const success = await services.settings.updateModelSettings(model, modelSettings);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: `Settings for ${model} updated successfully`,
+        settings: services.settings.getModelSettings(model)
+      });
+    } else {
+      res.status(500).json({ error: `Failed to update settings for ${model}` });
+    }
+  } catch (error) {
+    console.error(`Error updating model settings:`, error);
+    res.status(500).json({ error: 'Failed to update model settings' });
+  }
+});
+
+// Update video model selection
+app.post('/api/settings/video-model', async (req, res) => {
+  try {
+    const { model } = req.body;
+
+    if (!model) {
+      return res.status(400).json({ error: 'model is required' });
+    }
+
+    const success = await services.settings.setVideoModel(model);
+
+    if (success) {
+      await services.videoGeneration.setModel(model);
+      res.json({
+        success: true,
+        message: `Video model changed to ${model}`,
+        currentModel: model
+      });
+    } else {
+      res.status(400).json({ error: `Invalid model: ${model}` });
+    }
+  } catch (error) {
+    console.error('Error changing video model:', error);
+    res.status(500).json({ error: 'Failed to change video model' });
   }
 });
 

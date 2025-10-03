@@ -8,6 +8,9 @@ export class FileWatcherService {
     this.isRunning = false;
     this.fileTracker = new ProcessedFileTracker();
     this.watchInterval = null;
+    // Simple concurrency control
+    this.maxConcurrent = parseInt(process.env.MAX_CONCURRENT_JOBS || '3', 10);
+    this.activeTasks = new Set();
   }
 
   async start() {
@@ -18,6 +21,7 @@ export class FileWatcherService {
 
     try {
       console.log('👁️  Starting file watcher service...');
+      console.log(`🧵 Concurrency set to ${this.maxConcurrent} job(s)`);
 
       // Initialize file tracker first
       await this.fileTracker.initialize();
@@ -58,18 +62,36 @@ export class FileWatcherService {
     try {
       const inputFiles = await this.localStorage.getNewInputFiles();
 
-      for (const file of inputFiles) {
-        // Check if file is already processed or currently being processed
-        if (this.fileTracker.isFileProcessed(file.path, file.name)) {
-          continue; // Skip already processed files
-        }
+      // Determine available slots for processing
+      const availableSlots = Math.max(this.maxConcurrent - this.activeTasks.size, 0);
+      if (availableSlots <= 0) {
+        return; // Pool is full; try again on next tick
+      }
 
-        if (this.fileTracker.isFileCurrentlyProcessing(file.path, file.name)) {
-          continue; // Skip files currently being processed
-        }
+      let scheduled = 0;
+      for (const file of inputFiles) {
+        if (scheduled >= availableSlots) break;
+
+        // Skip files already processed or in-progress
+        if (this.fileTracker.isFileProcessed(file.path, file.name)) continue;
+        if (this.fileTracker.isFileCurrentlyProcessing(file.path, file.name)) continue;
 
         console.log(`🔍 New photo detected: ${file.name}`);
-        await this.processNewPhoto(file);
+
+        // Mark as processing immediately to prevent duplicate scheduling
+        await this.fileTracker.markFileAsProcessing(file.path, file.name);
+
+        // Schedule processing without awaiting (parallel within concurrency limit)
+        const task = this.processNewPhoto(file)
+          .catch((err) => {
+            console.error('Process task error:', err);
+          })
+          .finally(() => {
+            this.activeTasks.delete(task);
+          });
+
+        this.activeTasks.add(task);
+        scheduled += 1;
       }
     } catch (error) {
       console.error('Error checking for new files:', error);
@@ -80,17 +102,23 @@ export class FileWatcherService {
     const startTime = Date.now();
     console.log(`🎃 Processing photo: ${file.name}`);
 
-    // Mark file as currently being processed to prevent duplicates
-    await this.fileTracker.markFileAsProcessing(file.path, file.name);
+    // Marking as processing happens in checkForNewFiles to avoid race conditions
 
     try {
-      // Step 1: Generate video prompt with Gemini 2.5 Flash + master prompt
-      console.log('📝 Step 1: Generating video prompt with Gemini 2.5 Flash + master prompt...');
-      const videoPrompt = await this.photoAnalysis.generateVideoPrompt(file.path);
+      // Step 1: Generate dual prompts (Veo3 + image edit) with Gemini 2.5 Flash + master prompt
+      console.log('📝 Step 1: Generating dual prompts with Gemini 2.5 Flash + master prompt...');
+      const dualPrompts = await this.photoAnalysis.generateDualPrompts(file.path);
 
-      // Step 2: Generate video with WAN 2.2 Turbo using Gemini output + image
-      console.log('🎬 Step 2: Generating video with WAN 2.2 Turbo using Gemini output + image...');
-      const videoPath = await this.videoGeneration.generateVideo(videoPrompt, file.path, file.name);
+      // Step 2: Generate video with image editing workflow
+      console.log('🎬 Step 2: Editing image and generating video with new workflow...');
+      const result = await this.videoGeneration.generateVideoWithImageEdit(
+        dualPrompts.veoPrompt,
+        dualPrompts.imageEditPrompt,
+        file.path,
+        file.name
+      );
+      const videoPath = result.videoPath;
+      const editedImagePath = result.editedImagePath;
 
       // Step 3: Move generated video and metadata to output folder (if successful)
       let finalVideoPath = null;
@@ -104,6 +132,13 @@ export class FileWatcherService {
         await this.localStorage.copyFile(videoPath, videoFileName, 'output');
         finalVideoPath = `./output/${videoFileName}`;
         console.log('✅ Video saved to output folder');
+
+        // Copy edited image to output folder if it exists and is different from original
+        if (editedImagePath && editedImagePath !== file.path && fs.default.existsSync(editedImagePath)) {
+          const editedImageFileName = `${Date.now()}_${file.name.split('.')[0]}_edited.jpg`;
+          await this.localStorage.copyFile(editedImagePath, editedImageFileName, 'output');
+          console.log('✅ Edited image saved to output folder');
+        }
 
         // Copy corresponding .txt metadata file if it exists
         // Handle both .mp4 and _placeholder.jpg cases
@@ -119,17 +154,52 @@ export class FileWatcherService {
         if (fs.default.existsSync(tempTxtPath)) {
           await this.localStorage.copyFile(tempTxtPath, txtFileName, 'output');
 
-          // Update the metadata file to reflect the final video filename
+          // Update the metadata file to include only the two prompts and embed JSON
           const outputTxtPath = `./output/${txtFileName}`;
           try {
             let metadataContent = fs.default.readFileSync(outputTxtPath, 'utf8');
+
+            // Ensure correct video filename
             metadataContent = metadataContent.replace(/Video file:.*/, `Video file: ${videoFileName}`);
+
+            // Remove any existing single 'Prompt:' line(s)
+            metadataContent = metadataContent.replace(/^\s*Prompt:.*\n?/gm, '');
+
+            const promptsJson = JSON.stringify({
+              output_1: dualPrompts.imageEditPrompt,
+              output_2: dualPrompts.veoPrompt
+            });
+
+            const promptsSection = `\nImage Edit Prompt: ${dualPrompts.imageEditPrompt}\nImage-to-Video Prompt: ${dualPrompts.veoPrompt}\nPrompts JSON: ${promptsJson}`;
+
+            // Append prompts section if not already present
+            if (!/Image Edit Prompt:|Image-to-Video Prompt:|Prompts JSON:/m.test(metadataContent)) {
+              metadataContent += promptsSection;
+            }
+
             fs.default.writeFileSync(outputTxtPath, metadataContent);
-            console.log('✅ Metadata .txt file saved to output folder with correct filename');
+            console.log('✅ Enhanced metadata .txt file saved with dual prompts + JSON');
           } catch (updateError) {
-            console.warn('⚠️  Could not update metadata filename:', updateError.message);
+            console.warn('⚠️  Could not update metadata:', updateError.message);
             console.log('✅ Metadata .txt file saved to output folder');
           }
+        } else {
+          // Create new metadata file with both prompts if temp file doesn't exist
+          const outputTxtPath = `./output/${txtFileName}`;
+          const promptsJson = JSON.stringify({
+            output_1: dualPrompts.imageEditPrompt,
+            output_2: dualPrompts.veoPrompt
+          });
+          const metadataContent = `# Halloween Video - Generated
+Generated from: ${file.name}
+Timestamp: ${new Date().toISOString()}
+Video file: ${videoFileName}
+Image Edit Prompt: ${dualPrompts.imageEditPrompt}
+Image-to-Video Prompt: ${dualPrompts.veoPrompt}
+Prompts JSON: ${promptsJson}\n`;
+
+          fs.default.writeFileSync(outputTxtPath, metadataContent);
+          console.log('✅ New metadata .txt file created with dual prompts + JSON');
         }
 
         // Clean up temp files
@@ -137,6 +207,11 @@ export class FileWatcherService {
           fs.default.unlinkSync(videoPath);
           if (fs.default.existsSync(tempTxtPath)) {
             fs.default.unlinkSync(tempTxtPath);
+          }
+          // Clean up edited image from temp if it exists and is different from original
+          if (editedImagePath && editedImagePath !== file.path && fs.default.existsSync(editedImagePath)) {
+            fs.default.unlinkSync(editedImagePath);
+            console.log('🧹 Cleaned up temp edited image');
           }
         } catch (cleanupError) {
           console.warn('⚠️  Could not clean up temp files:', cleanupError.message);
@@ -166,7 +241,11 @@ export class FileWatcherService {
       isRunning: this.isRunning,
       processedCount: this.fileTracker.getProcessedCount(),
       lastCheck: new Date().toISOString(),
-      fileTracker: this.fileTracker.getStatus()
+      fileTracker: this.fileTracker.getStatus(),
+      concurrency: {
+        maxConcurrent: this.maxConcurrent,
+        active: this.activeTasks.size
+      }
     };
   }
 }
