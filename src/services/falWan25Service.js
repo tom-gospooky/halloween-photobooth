@@ -1,12 +1,16 @@
 import { fal } from '@fal-ai/client';
 import fs from 'fs';
 import https from 'https';
+import { pipeline as streamPipeline } from 'stream/promises';
+import { Readable } from 'stream';
+import path from 'path';
 
 export class FalWan25Service {
   constructor(settingsService = null) {
     this.apiKey = process.env.FAL_KEY;
     this.isInitialized = false;
     this.settingsService = settingsService;
+    this.negativePrompt = '';
   }
 
   async initialize() {
@@ -20,12 +24,43 @@ export class FalWan25Service {
         credentials: this.apiKey
       });
 
+      // Load negative prompt from negative.md
+      await this.loadNegativePrompt();
+
       console.log('✅ FAL WAN 2.5 Preview service initialized');
       this.isInitialized = true;
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize FAL WAN 2.5 service:', error.message);
       return false;
+    }
+  }
+
+  async loadNegativePrompt() {
+    try {
+      const negativePath = path.resolve('./negative.md');
+      if (fs.existsSync(negativePath)) {
+        const content = fs.readFileSync(negativePath, 'utf8');
+        // Simply use the entire content as negative prompt (stripped of markdown headers)
+        const cleaned = content
+          .replace(/^#.*$/gm, '')  // Remove markdown headers
+          .replace(/^-{3,}$/gm, '') // Remove horizontal rules
+          .trim();
+
+        if (cleaned && cleaned.length > 0) {
+          this.negativePrompt = cleaned;
+          console.log('✅ Loaded negative prompt from negative.md');
+        } else {
+          console.warn('⚠️ negative.md is empty, using default');
+          this.negativePrompt = 'blur, distortion, low quality';
+        }
+      } else {
+        console.warn('⚠️ negative.md not found, using default negative prompt');
+        this.negativePrompt = 'blur, distortion, low quality';
+      }
+    } catch (error) {
+      console.error('❌ Failed to load negative prompt:', error.message);
+      this.negativePrompt = 'blur, distortion, low quality';
     }
   }
 
@@ -48,20 +83,33 @@ export class FalWan25Service {
       console.log('📸 Image converted to data URI for WAN 2.5');
       console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
 
-      // Use provided options or defaults
+      // Use provided options or defaults from settingsService
+      const resolution = options.resolution || this.settingsService?.getSettings().resolution || "1080p";
+      const duration = options.duration || this.settingsService?.getSettings().duration || "5";
+
       const input = {
         image_url: imageDataUri,
         prompt: prompt,
-        resolution: options.resolution || "1080p",
-        duration: parseInt(options.duration || "5"),
+        resolution: resolution,
+        duration: parseInt(duration),
+        negative_prompt: this.negativePrompt, // Load from negative.md
         enable_safety_checker: false, // Allow horror content
         enable_prompt_expansion: true  // Use LLM enhancement
       };
 
+      console.log(`⚙️  WAN 2.5 Settings: ${resolution}, ${duration}s duration`);
+      console.log(`🚫 Negative prompt: ${this.negativePrompt.substring(0, 50)}...`);
+
       const result = await fal.run("fal-ai/wan-25-preview/image-to-video", { input });
 
       // API call successful, processing response
+      console.log('🔍 WAN 2.5 API Response structure:', JSON.stringify(Object.keys(result || {})));
+      if (result?.data?.video) {
+        console.log('🔍 Video object keys:', JSON.stringify(Object.keys(result.data.video)));
+        console.log('🔍 Video URL:', result.data.video.url);
+      }
 
+      // Correct path: result.data.video.url (fal.run wraps response in data object)
       if (result && result.data && result.data.video && result.data.video.url) {
         console.log('✅ WAN 2.5 Preview video generation completed');
 
@@ -98,29 +146,104 @@ export class FalWan25Service {
   async downloadVideo(videoUrl, outputPath) {
     console.log('⬇️ Downloading video from WAN 2.5...');
 
-    return new Promise((resolve, reject) => {
-      https.get(videoUrl, (response) => {
-        if (response.statusCode !== 200) {
-          reject(new Error(`Download failed with status: ${response.statusCode}`));
-          return;
+    // Prefer fetch with redirect following (Node 18+)
+    try {
+      // Ensure temp directory exists
+      try { fs.mkdirSync(path.dirname(outputPath), { recursive: true }); } catch {}
+
+      const res = await fetch(videoUrl, { redirect: 'follow' });
+      if (!res.ok) {
+        throw new Error(`Download failed with status: ${res.status} ${res.statusText}`);
+      }
+
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
+      // Stream to file
+      const fileStream = fs.createWriteStream(outputPath);
+      await streamPipeline(Readable.fromWeb(res.body), fileStream);
+
+      // Basic MP4 signature check: 'ftyp' at offset 4
+      try {
+        const fd = fs.openSync(outputPath, 'r');
+        const header = Buffer.alloc(12);
+        fs.readSync(fd, header, 0, 12, 0);
+        fs.closeSync(fd);
+        const isMp4 = header.slice(4, 8).toString() === 'ftyp';
+        if (!isMp4) {
+          const size = fs.statSync(outputPath).size;
+          // Clean up partial or wrong file to avoid propagating corruption
+          try { fs.unlinkSync(outputPath); } catch {}
+          throw new Error(`Downloaded file is not a valid MP4 (content-type=${contentType || 'unknown'}, size=${size} bytes)`);
         }
+      } catch (sigErr) {
+        // If we fail to read header, remove file and rethrow
+        try { fs.unlinkSync(outputPath); } catch {}
+        throw sigErr;
+      }
 
-        const fileStream = fs.createWriteStream(outputPath);
-        response.pipe(fileStream);
+      const stats = fs.statSync(outputPath);
+      console.log(`✅ Video downloaded: ${outputPath} (${Math.round(stats.size / 1024)}KB)`);
+      return;
+    } catch (err) {
+      // Fallback to https.get with manual redirect handling (rarely used if fetch works)
+      console.warn(`⚠️ fetch download failed (${err.message}). Falling back to https.get with redirect handling`);
 
-        fileStream.on('finish', () => {
-          fileStream.close();
-          const stats = fs.statSync(outputPath);
-          console.log(`✅ Video downloaded: ${outputPath} (${Math.round(stats.size / 1024)}KB)`);
-          resolve();
-        });
+      const follow = (url, redirectsLeft = 5) => new Promise((resolve, reject) => {
+        const handle = (requestUrl, remaining) => {
+          https.get(requestUrl, (response) => {
+            const { statusCode, headers } = response;
+            if (statusCode >= 300 && statusCode < 400 && headers.location) {
+              if (remaining <= 0) {
+                reject(new Error('Too many redirects'));
+                return;
+              }
+              response.resume(); // discard
+              const next = headers.location.startsWith('http') ? headers.location : new URL(headers.location, requestUrl).toString();
+              handle(next, remaining - 1);
+              return;
+            }
+            if (statusCode !== 200) {
+              reject(new Error(`Download failed with status: ${statusCode}`));
+              return;
+            }
 
-        fileStream.on('error', (err) => {
-          fs.unlink(outputPath, () => {}); // Delete partial file
-          reject(err);
-        });
-      }).on('error', reject);
-    });
+            const fileStream = fs.createWriteStream(outputPath);
+            response.pipe(fileStream);
+
+            fileStream.on('finish', () => {
+              fileStream.close();
+              try {
+                const fd = fs.openSync(outputPath, 'r');
+                const header = Buffer.alloc(12);
+                fs.readSync(fd, header, 0, 12, 0);
+                fs.closeSync(fd);
+                const isMp4 = header.slice(4, 8).toString() === 'ftyp';
+                if (!isMp4) {
+                  try { fs.unlinkSync(outputPath); } catch {}
+                  reject(new Error('Downloaded file is not a valid MP4'));
+                  return;
+                }
+              } catch (e) {
+                try { fs.unlinkSync(outputPath); } catch {}
+                reject(e);
+                return;
+              }
+              const stats = fs.statSync(outputPath);
+              console.log(`✅ Video downloaded: ${outputPath} (${Math.round(stats.size / 1024)}KB)`);
+              resolve();
+            });
+
+            fileStream.on('error', (e) => {
+              try { fs.unlinkSync(outputPath); } catch {}
+              reject(e);
+            });
+          }).on('error', reject);
+        };
+        handle(url, redirectsLeft);
+      });
+
+      await follow(videoUrl);
+    }
   }
 
   async createMetadataFile(videoPath, originalFileName, prompt, finalVideoName = null) {

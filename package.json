@@ -13,7 +13,9 @@
     "test": "node test/test-workflow.js",
     "test:clean": "node test/test-workflow.js --cleanup",
     "test:single-use": "node test/test-single-use.js",
-    "test:txt-copy": "node test/test-txt-copy.js"
+    "test:txt-copy": "node test/test-txt-copy.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@fal-ai/client": "^1.6.2",
@@ -25,6 +27,7 @@
     "sharp": "^0.33.0"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
     "nodemon": "^3.0.2"
   },
   "keywords": [

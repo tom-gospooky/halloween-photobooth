@@ -3,6 +3,8 @@ import { getImageDimensions } from '../utils/imageUtils.js';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import { pipeline as streamPipeline } from 'stream/promises';
+import { Readable } from 'stream';
 
 export class SeedreamImageService {
   constructor(settingsService = null) {
@@ -64,54 +66,71 @@ export class SeedreamImageService {
       const sanitizedInstruction = this.sanitizeImageEditPrompt(editInstruction);
       console.log(`📝 Edit instruction: ${sanitizedInstruction}`);
 
-      // Read source image and convert to data URI
+      // Upload image to FAL storage first (Seedream requires public URLs, not data URIs)
+      console.log('📤 Uploading image to FAL storage...');
+
+      // Read image as buffer and create File with proper name/type
       const imgBuffer = fs.readFileSync(imagePath);
       const mimeType = this.getMimeTypeFromPath(imagePath);
-      const imageDataUri = `data:${mimeType};base64,${imgBuffer.toString('base64')}`;
+      const ext = path.extname(imagePath) || '.jpg';
+      const basename = path.basename(imagePath, ext);
+      const filename = `${basename}${ext}`;
 
-      // Get image dimensions to preserve aspect ratio
+      // Create File object with proper name and MIME type (Node 18+)
+      const file = new File([imgBuffer], filename, { type: mimeType });
+      const imageUrl = await fal.storage.upload(file);
+      console.log('✅ Image uploaded to FAL:', imageUrl);
+
+      // Get image dimensions for logging
       const dimensions = await getImageDimensions(imagePath);
-      let imageSize = '2048x2048'; // Default square
 
-      if (dimensions.width && dimensions.height) {
-        // Try to maintain aspect ratio
-        const ratio = dimensions.width / dimensions.height;
-        if (ratio > 1.2) {
-          // Landscape
-          imageSize = '2048x1536';  // Roughly 4:3 landscape
-        } else if (ratio < 0.8) {
-          // Portrait
-          imageSize = '1536x2048';  // Roughly 3:4 portrait
-        } else {
-          // Square-ish
-          imageSize = '2048x2048';
-        }
-      }
+      // Get image size from settings (defaults to "auto")
+      const imageSize = this.settingsService?.getSeedreamImageSize() || "auto";
 
-      console.log(`📐 Using image size: ${imageSize} (based on input dimensions ${dimensions.width}x${dimensions.height})`);
-
-      // Get number of variations from settings
-      const numImages = this.settingsService?.getImageVariations() || 1;
+      console.log(`📐 Using image size: ${imageSize} (input dimensions ${dimensions.width}x${dimensions.height})`);
 
       // Build input with auto-detected settings
       const input = {
-        image_urls: [imageDataUri],
+        image_urls: [imageUrl],  // Use FAL-hosted URL, not data URI
         prompt: sanitizedInstruction,
         image_size: imageSize,
-        num_images: numImages,
-        enable_safety_checker: true  // Always enabled for safety
+        num_images: 1,  // Always generate 1 image (simplified)
+        enable_safety_checker: false  // Disable for creative Halloween content
       };
 
       // Call Seedream v4 Edit API with correct parameters
-      const result = await fal.run('fal-ai/bytedance/seedream/v4/edit', { input });
+      console.log('🚀 Calling Seedream v4 Edit API...');
+      console.log('📦 Request payload:', JSON.stringify({
+        prompt: input.prompt.substring(0, 100),
+        image_size: input.image_size,
+        num_images: input.num_images,
+        enable_safety_checker: input.enable_safety_checker,
+        image_url: input.image_urls[0]
+      }));
 
-      // Extract image URL from response
-      const url = result?.data?.images?.[0]?.url
-        || result?.data?.image?.url
-        || result?.data?.output?.[0]?.url
-        || result?.data?.url;
+      const result = await fal.subscribe('fal-ai/bytedance/seedream/v4/edit', {
+        input,
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === 'IN_PROGRESS' || update.status === 'IN_QUEUE') {
+            console.log(`⏳ Seedream status: ${update.status}`);
+          }
+        }
+      });
+      console.log('📥 Seedream API response received');
+      console.log('🔍 Response structure:', JSON.stringify(Object.keys(result || {})));
+
+      // Extract image URL from response - FAL API returns images directly in result
+      const url = result?.images?.[0]?.url           // Standard FAL response
+        || result?.data?.images?.[0]?.url            // Wrapped response
+        || result?.data?.image?.url                   // Alternative structure
+        || result?.data?.output?.[0]?.url            // Legacy structure
+        || result?.data?.url;                        // Direct URL
+
+      console.log('🔗 Extracted URL:', url ? 'Found ✅' : 'Not found ❌');
 
       if (!url) {
+        console.error('❌ Full Seedream response:', JSON.stringify(result, null, 2));
         throw new Error('No image URL in Seedream response');
       }
 
@@ -125,32 +144,66 @@ export class SeedreamImageService {
       return editedImagePath;
     } catch (error) {
       console.error('❌ Seedream image editing failed:', error.message);
+      console.error('❌ Error details:', JSON.stringify({
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.split('\n')[0],
+        response: error.response?.data || error.response || 'No response data'
+      }));
       console.log('🔄 Falling back to original image');
       return imagePath;
     }
   }
 
-  downloadFile(fileUrl, outputPath) {
-    return new Promise((resolve, reject) => {
-      https.get(fileUrl, (response) => {
-        if (response.statusCode !== 200) {
-          reject(new Error(`Download failed with status: ${response.statusCode}`));
-          return;
-        }
-        // Ensure temp directory exists
-        try { fs.mkdirSync(path.dirname(outputPath), { recursive: true }); } catch {}
-        const fileStream = fs.createWriteStream(outputPath);
-        response.pipe(fileStream);
-        fileStream.on('finish', () => {
-          fileStream.close();
-          resolve();
-        });
-        fileStream.on('error', (err) => {
-          try { fs.unlinkSync(outputPath); } catch {}
-          reject(err);
-        });
-      }).on('error', reject);
-    });
+  async downloadFile(fileUrl, outputPath) {
+    // Prefer fetch with redirect following (Node 18+)
+    try {
+      try { fs.mkdirSync(path.dirname(outputPath), { recursive: true }); } catch {}
+      const res = await fetch(fileUrl, { redirect: 'follow' });
+      if (!res.ok) {
+        throw new Error(`Download failed with status: ${res.status} ${res.statusText}`);
+      }
+      const fileStream = fs.createWriteStream(outputPath);
+      await streamPipeline(Readable.fromWeb(res.body), fileStream);
+      return;
+    } catch (err) {
+      // Fallback with manual redirect handling
+      const follow = (url, redirectsLeft = 5) => new Promise((resolve, reject) => {
+        const handle = (requestUrl, remaining) => {
+          https.get(requestUrl, (response) => {
+            const { statusCode, headers } = response;
+            if (statusCode >= 300 && statusCode < 400 && headers.location) {
+              if (remaining <= 0) {
+                reject(new Error('Too many redirects'));
+                return;
+              }
+              response.resume();
+              const next = headers.location.startsWith('http') ? headers.location : new URL(headers.location, requestUrl).toString();
+              handle(next, remaining - 1);
+              return;
+            }
+            if (statusCode !== 200) {
+              reject(new Error(`Download failed with status: ${statusCode}`));
+              return;
+            }
+
+            try { fs.mkdirSync(path.dirname(outputPath), { recursive: true }); } catch {}
+            const fileStream = fs.createWriteStream(outputPath);
+            response.pipe(fileStream);
+            fileStream.on('finish', () => {
+              fileStream.close();
+              resolve();
+            });
+            fileStream.on('error', (e) => {
+              try { fs.unlinkSync(outputPath); } catch {}
+              reject(e);
+            });
+          }).on('error', reject);
+        };
+        handle(fileUrl, redirectsLeft);
+      });
+      await follow(fileUrl);
+    }
   }
 
   getMimeTypeFromPath(imagePath) {
