@@ -29,7 +29,7 @@ export class VideoGenerationService {
     console.log('📹 Video Generation Service initialized with WAN 2.5 Preview');
   }
 
-  async generateVideoWithImageEdit(veoPrompt, imageEditPrompt, originalImagePath, originalFileName) {
+  async generateVideoWithImageEdit(veoPrompt, imageEditPrompt, originalImagePath, originalFileName, progress = {}) {
     const timing = {
       imageEdit: 0,
       videoGeneration: 0
@@ -39,18 +39,22 @@ export class VideoGenerationService {
       console.log('🎬 Generating video with image editing workflow...');
 
       // Step 1: Edit the image using Seedream v4 Edit
+      try { progress.onImageEditStart && progress.onImageEditStart(); } catch {}
       console.log('🎨 Step 1: Editing image with Seedream v4 Edit (fal.ai)...');
       const imageEditStart = Date.now();
       const editedImagePath = await this.imageEditService.editImage(originalImagePath, imageEditPrompt);
+      try { progress.onImageEditComplete && progress.onImageEditComplete(editedImagePath); } catch {}
       timing.imageEdit = (Date.now() - imageEditStart) / 1000;
       console.log(`⏱️  Image editing completed in ${timing.imageEdit.toFixed(2)}s`);
 
       // Step 2: Generate video using edited image and Veo prompt
       console.log('🎬 Step 2: Generating video with edited image...');
+      try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
       const videoPath = await this.generateVideo(veoPrompt, editedImagePath, originalFileName);
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;
       console.log(`⏱️  Video generation completed in ${timing.videoGeneration.toFixed(2)}s`);
+      try { progress.onVideoComplete && progress.onVideoComplete(videoPath); } catch {}
 
       return {
         videoPath,
@@ -63,6 +67,7 @@ export class VideoGenerationService {
       console.log('🔄 Falling back to original image workflow...');
 
       // Fallback to original workflow without image editing
+      try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
       const videoPath = await this.generateVideo(veoPrompt, originalImagePath, originalFileName);
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;

@@ -924,6 +924,16 @@ class HalloweenPhotobooth {
                     const pillColor = file.status === 'completed' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
                                      file.status === 'processing' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-gray-400 border-gray-500/30 bg-gray-500/10';
 
+                    const stageMap = {
+                        queued: 'Queued',
+                        prompt: 'Prompt Generation',
+                        image_edit: 'Image Editing',
+                        video: 'Video Generation',
+                        finalizing: 'Finalizing',
+                        completed: 'Completed'
+                    };
+                    const stageText = stageMap[file.stage] || (file.status === 'processing' ? 'Processing' : '');
+
                     const processedTime = file.processedAt ?
                         new Date(file.processedAt).toLocaleString() : '-';
 
@@ -939,6 +949,11 @@ class HalloweenPhotobooth {
                                     <span class="text-gray-500">${file.sizeFormatted}</span>
                                 </div>
                             </div>
+                            ${file.status === 'processing' ? `
+                                <div class="text-gray-400 mt-1 text-xs ml-6">
+                                    Stage: <span class="text-white/90">${stageText}</span>
+                                </div>
+                            ` : ''}
                             ${file.status === 'completed' ? `
                                 <div class="text-gray-500 mt-1 text-xs ml-6">
                                     Processed: ${processedTime}

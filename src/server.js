@@ -358,12 +358,17 @@ app.get('/api/input-status', async (req, res) => {
         // Check status from processed file tracker
         let status = 'pending';
         let processedAt = null;
+        let stage = null;
 
         // Use the active file tracker from the watcher
         const tracker = services.fileWatcher?.fileTracker || services.fileWatcher?.processedFileTracker;
         if (tracker) {
           if (tracker.isFileCurrentlyProcessing(filePath, filename)) {
             status = 'processing';
+            const record = Array.from(tracker.processedFiles.values()).find(r => r.fileName === filename);
+            if (record) {
+              stage = record.stage || null;
+            }
           } else if (tracker.isFileProcessed(filePath, filename)) {
             status = 'completed';
             // Get the processed time
@@ -371,6 +376,7 @@ app.get('/api/input-status', async (req, res) => {
               .find(r => r.fileName === filename);
             if (record) {
               processedAt = record.processedAt;
+              stage = record.stage || 'completed';
             }
           }
         }
@@ -382,7 +388,8 @@ app.get('/api/input-status', async (req, res) => {
           created: stats.birthtime,
           modified: stats.mtime,
           status,
-          processedAt
+          processedAt,
+          stage
         };
       })
       .sort((a, b) => b.modified - a.modified);

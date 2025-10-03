@@ -109,7 +109,9 @@ export class ProcessedFileTracker {
         fileModified: stats.mtime.toISOString(),
         processedAt: new Date().toISOString(),
         videoOutput: videoOutputPath,
-        status: 'completed'
+        status: 'completed',
+        stage: 'completed',
+        stageAt: new Date().toISOString()
       };
 
       this.processedFiles.set(fileHash, record);
@@ -135,7 +137,9 @@ export class ProcessedFileTracker {
         fileModified: stats.mtime.toISOString(),
         processedAt: new Date().toISOString(),
         videoOutput: null,
-        status: 'processing'
+        status: 'processing',
+        stage: 'queued',
+        stageAt: new Date().toISOString()
       };
 
       this.processedFiles.set(fileHash, record);
@@ -144,6 +148,28 @@ export class ProcessedFileTracker {
       console.log(`🔄 Marked as processing: ${fileName} (hash: ${fileHash.substring(0, 8)}...)`);
     } catch (error) {
       console.error(`❌ Failed to mark file as processing: ${fileName}`, error);
+    }
+  }
+
+  async setProcessingStage(filePath, fileName, stage) {
+    try {
+      const fileHash = this.generateFileHash(filePath);
+      if (!fileHash) return;
+
+      const existing = this.processedFiles.get(fileHash) || {
+        fileName,
+        filePath,
+        fileHash,
+        status: 'processing'
+      };
+
+      existing.stage = stage;
+      existing.stageAt = new Date().toISOString();
+      // Keep existing processedAt/file size if present
+      this.processedFiles.set(fileHash, existing);
+      await this.saveProcessedFiles();
+    } catch (error) {
+      console.error(`❌ Failed to set processing stage for ${fileName}:`, error);
     }
   }
 

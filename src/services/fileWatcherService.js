@@ -81,6 +81,8 @@ export class FileWatcherService {
 
         // Mark as processing immediately to prevent duplicate scheduling
         await this.fileTracker.markFileAsProcessing(file.path, file.name);
+        // Indicate initial stage
+        await this.fileTracker.setProcessingStage(file.path, file.name, 'prompt');
 
         // Schedule processing without awaiting (parallel within concurrency limit)
         const task = this.processNewPhoto(file)
@@ -128,7 +130,21 @@ export class FileWatcherService {
         dualPrompts.veoPrompt,
         dualPrompts.imageEditPrompt,
         file.path,
-        file.name
+        file.name,
+        {
+          onImageEditStart: async () => {
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
+          },
+          onImageEditComplete: async () => {
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
+          },
+          onVideoStart: async () => {
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'video');
+          },
+          onVideoComplete: async () => {
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'video');
+          }
+        }
       );
       const videoPath = result.videoPath;
       const editedImagePath = result.editedImagePath;
