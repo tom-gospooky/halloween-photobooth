@@ -14,7 +14,6 @@ export class ProcessedFileTracker {
     try {
       await this.loadProcessedFiles();
       this.isInitialized = true;
-      console.log(`✅ Processed file tracker initialized - ${this.processedFiles.size} files tracked`);
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize processed file tracker:', error);
@@ -29,9 +28,7 @@ export class ProcessedFileTracker {
         const processedData = JSON.parse(data);
 
         this.processedFiles = new Map(Object.entries(processedData));
-        console.log(`📋 Loaded ${this.processedFiles.size} processed files from tracking file`);
       } else {
-        console.log('📋 No existing tracking file found - starting fresh');
         this.processedFiles = new Map();
       }
     } catch (error) {
@@ -76,7 +73,6 @@ export class ProcessedFileTracker {
     if (this.processedFiles.has(fileHash)) {
       const record = this.processedFiles.get(fileHash);
       if (record.status === 'completed') {
-        console.log(`🔄 File already processed: ${fileName} (processed: ${record.processedAt})`);
         return true;
       }
     }
@@ -84,7 +80,6 @@ export class ProcessedFileTracker {
     // Check by filename (backup method)
     for (const [, record] of this.processedFiles.entries()) {
       if (record.fileName === fileName && record.filePath === filePath && record.status === 'completed') {
-        console.log(`🔄 File already processed (by name): ${fileName} (processed: ${record.processedAt})`);
         return true;
       }
     }
@@ -116,8 +111,6 @@ export class ProcessedFileTracker {
 
       this.processedFiles.set(fileHash, record);
       await this.saveProcessedFiles();
-
-      console.log(`✅ Marked as processed: ${fileName} (hash: ${fileHash.substring(0, 8)}...)`);
     } catch (error) {
       console.error(`❌ Failed to mark file as processed: ${fileName}`, error);
     }
@@ -144,20 +137,18 @@ export class ProcessedFileTracker {
 
       this.processedFiles.set(fileHash, record);
       await this.saveProcessedFiles();
-
-      console.log(`🔄 Marked as processing: ${fileName} (hash: ${fileHash.substring(0, 8)}...)`);
     } catch (error) {
       console.error(`❌ Failed to mark file as processing: ${fileName}`, error);
     }
   }
 
-  async setProcessingStage(filePath, fileName, stage) {
+  async setProcessingStage(filePath, _fileName, stage) {
     try {
       const fileHash = this.generateFileHash(filePath);
       if (!fileHash) return;
 
       const existing = this.processedFiles.get(fileHash) || {
-        fileName,
+        fileName: _fileName,
         filePath,
         fileHash,
         status: 'processing'
@@ -169,11 +160,11 @@ export class ProcessedFileTracker {
       this.processedFiles.set(fileHash, existing);
       await this.saveProcessedFiles();
     } catch (error) {
-      console.error(`❌ Failed to set processing stage for ${fileName}:`, error);
+      console.error(`❌ Failed to set processing stage:`, error);
     }
   }
 
-  isFileCurrentlyProcessing(filePath, fileName) {
+  isFileCurrentlyProcessing(filePath, _fileName) {
     const fileHash = this.generateFileHash(filePath);
     if (!fileHash) return false;
 
@@ -185,15 +176,7 @@ export class ProcessedFileTracker {
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
 
         if (processingStarted < tenMinutesAgo) {
-          console.log(`⚠️  Processing timeout detected for ${fileName} - will retry`);
           return false;
-        }
-
-        // Throttle log to once per minute per file
-        const last = this._lastProcessingLog.get(fileHash) || 0;
-        if (Date.now() - last > 60 * 1000) {
-          console.log(`🔄 File currently being processed: ${fileName}`);
-          this._lastProcessingLog.set(fileHash, Date.now());
         }
         return true;
       }

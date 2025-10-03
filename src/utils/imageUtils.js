@@ -29,7 +29,7 @@ export async function detectAspectRatio(imagePath) {
     // Find the closest matching ratio
     for (const standardRatio of ratios) {
       if (Math.abs(ratio - standardRatio.value) <= standardRatio.tolerance) {
-        console.log(`📐 Detected aspect ratio: ${standardRatio.name} (${width}x${height})`);
+        // No console output to keep logs clean
 
         // Map to supported API ratios
         if (standardRatio.name === '4:3' || standardRatio.name === '16:9') {
@@ -44,19 +44,18 @@ export async function detectAspectRatio(imagePath) {
 
     // If no close match, decide based on orientation
     if (ratio > 1.2) {
-      console.log(`📐 Landscape image (${width}x${height}), using 16:9`);
+      // No console output to keep logs clean
       return '16:9';
     } else if (ratio < 0.8) {
-      console.log(`📐 Portrait image (${width}x${height}), using 9:16`);
+      // No console output to keep logs clean
       return '9:16';
     } else {
-      console.log(`📐 Square-ish image (${width}x${height}), using 1:1`);
+      // No console output to keep logs clean
       return '1:1';
     }
 
   } catch (error) {
     console.error('❌ Error detecting aspect ratio:', error.message);
-    console.log('Using 16:9 fallback');
     return '16:9';
   }
 }

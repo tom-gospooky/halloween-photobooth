@@ -135,6 +135,7 @@ export class FileWatcherService {
         file.path,
         file.name,
         {
+          logger: log,
           onImageEditStart: async () => {
             await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
             log.info('Image edit started');
