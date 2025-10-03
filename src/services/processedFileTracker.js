@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
 
 export class ProcessedFileTracker {
@@ -83,7 +82,7 @@ export class ProcessedFileTracker {
     }
 
     // Check by filename (backup method)
-    for (const [hash, record] of this.processedFiles.entries()) {
+    for (const [, record] of this.processedFiles.entries()) {
       if (record.fileName === fileName && record.filePath === filePath && record.status === 'completed') {
         console.log(`🔄 File already processed (by name): ${fileName} (processed: ${record.processedAt})`);
         return true;

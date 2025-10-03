@@ -105,7 +105,7 @@ export class GeminiErrorHandler {
     }
   }
 
-  handleQuotaExceeded(error, operation) {
+  handleQuotaExceeded(_error, _operation) {
     console.error('💰 Gemini API quota exceeded');
     
     return {
@@ -116,7 +116,7 @@ export class GeminiErrorHandler {
     };
   }
 
-  handleAuthError(error, operation) {
+  handleAuthError(_error, _operation) {
     console.error('🔐 Gemini API authentication failed');
     
     return {
@@ -127,7 +127,7 @@ export class GeminiErrorHandler {
     };
   }
 
-  handleContentFilter(error, operation) {
+  handleContentFilter(_error, _operation) {
     console.warn('⚠️  Content filtered by Gemini safety filters');
     
     return {
@@ -138,7 +138,7 @@ export class GeminiErrorHandler {
     };
   }
 
-  handleModelUnavailable(error, operation) {
+  handleModelUnavailable(_error, _operation) {
     console.warn('🚫 Gemini model temporarily unavailable');
     
     return {

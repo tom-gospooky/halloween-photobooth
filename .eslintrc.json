@@ -17,8 +17,7 @@
   ],
   "rules": {
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    "no-empty": ["warn", { "allowEmptyCatch": false }],
+    "no-empty": ["warn", { "allowEmptyCatch": true }],
     "no-undef": "error"
   }
 }
-

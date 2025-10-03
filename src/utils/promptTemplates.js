@@ -51,10 +51,7 @@ export const HauntedHighSchoolTemplates = {
 
 export const PromptGenerator = {
   generatePrompt(analysis) {
-    const { people, costumes, setting, composition } = analysis;
-    
     // Select appropriate template category
-    const categories = Object.keys(HauntedHighSchoolTemplates);
     const category = this.selectCategory(analysis);
     const templates = HauntedHighSchoolTemplates[category];
     const template = templates[Math.floor(Math.random() * templates.length)];
@@ -123,7 +120,7 @@ export const PromptGenerator = {
     return integrations[themes[0]] || integrations.classic;
   },
 
-  generateSupernaturalElements(setting, composition) {
+  generateSupernaturalElements(_setting, _composition) {
     const elements = [
       "Ethereal school bells chime from nowhere",
       "Phantom backpacks float through the air", 

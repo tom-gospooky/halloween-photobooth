@@ -127,7 +127,7 @@ export class ErrorHandler {
     }
   }
 
-  handleFileWatcherError(operation, error) {
+  handleFileWatcherError(_operation, _error) {
     return {
       success: false,
       error: 'File watcher error',

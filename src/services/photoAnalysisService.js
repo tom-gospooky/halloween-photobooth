@@ -1,13 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import sharp from 'sharp';
 import fs from 'fs';
-import path from 'path';
 import { GeminiErrorHandler } from '../utils/geminiErrorHandler.js';
 
 export class PhotoAnalysisService {
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-    this.gemini25Model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    this.gemini25Model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-09-2025' });
     this.errorHandler = new GeminiErrorHandler();
   }
 
@@ -68,11 +67,17 @@ export class PhotoAnalysisService {
       try {
         // Remove markdown code blocks if present
         let cleanedResponse = responseText;
+
+        // Handle ```json code blocks
         if (responseText.includes('```json')) {
           const match = responseText.match(/```json\s*(.*?)\s*```/s);
           if (match) {
             cleanedResponse = match[1];
           }
+        }
+        // Handle plain backticks wrapping JSON
+        else if (responseText.trim().startsWith('`') && responseText.trim().endsWith('`')) {
+          cleanedResponse = responseText.trim().slice(1, -1).trim();
         }
 
         const jsonResponse = JSON.parse(cleanedResponse);
