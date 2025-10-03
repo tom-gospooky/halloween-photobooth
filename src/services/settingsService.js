@@ -92,9 +92,7 @@ export class SettingsService {
     }
   }
 
-  async update(partial) {
-    return this.save(partial);
-  }
+  // update(partial) removed as unused
 
   async setResolution(resolution) {
     const validResolutions = ['480p', '720p', '1080p'];
@@ -167,17 +165,7 @@ export class SettingsService {
     };
   }
 
-  // Minimal schema to support the server route (optional)
-  getSchema() {
-    return {
-      fields: {
-        resolution: { type: 'enum', values: ['480p', '720p', '1080p'] },
-        duration: { type: 'enum', values: ['5', '10'] },
-        seedreamImageSize: { type: 'enum', values: ['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3'] },
-        playbackRate: { type: 'number', min: 0.2, max: 2.0, step: 0.1, default: 1.0 }
-      }
-    };
-  }
+  // getSchema removed as /api/settings/schema is no longer exposed
 
   deepMerge(target, source) {
     const output = { ...target };

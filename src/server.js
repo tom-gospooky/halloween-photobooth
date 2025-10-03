@@ -223,16 +223,6 @@ app.get('/api/settings', (req, res) => {
 });
 
 // Get settings schema for UI generation
-app.get('/api/settings/schema', (req, res) => {
-  try {
-    const schema = services.settings.getSchema();
-    res.json(schema);
-  } catch (error) {
-    console.error('Error fetching settings schema:', error);
-    res.status(500).json({ error: 'Failed to fetch settings schema' });
-  }
-});
-
 // Update all settings
 app.post('/api/settings', async (req, res) => {
   try {
