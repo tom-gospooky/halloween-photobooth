@@ -343,6 +343,29 @@ app.post('/api/settings/seedream-image-size', async (req, res) => {
   }
 });
 
+// Update playback rate
+app.post('/api/settings/playback-rate', async (req, res) => {
+  try {
+    const { playbackRate } = req.body;
+    if (typeof playbackRate === 'undefined') {
+      return res.status(400).json({ error: 'playbackRate is required' });
+    }
+    const success = await services.settings.setPlaybackRate(playbackRate);
+    if (success) {
+      res.json({
+        success: true,
+        message: `Playback rate changed to ${playbackRate}x`,
+        settings: services.settings.getSettings()
+      });
+    } else {
+      res.status(400).json({ error: `Invalid playbackRate: ${playbackRate}` });
+    }
+  } catch (error) {
+    console.error('Error changing playback rate:', error);
+    res.status(500).json({ error: 'Failed to change playback rate' });
+  }
+});
+
 // Get input folder status and file processing info
 app.get('/api/input-status', async (req, res) => {
   try {

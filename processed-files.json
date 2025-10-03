@@ -5,11 +5,11 @@
     "fileHash": "c52dcbf26bcb0587a2dab4a55e9cf86f4978d7669728db09b2da3991a062eda8",
     "fileSize": 1446672,
     "fileModified": "2025-09-17T20:03:31.835Z",
-    "processedAt": "2025-10-03T19:33:26.647Z",
+    "processedAt": "2025-10-03T20:25:53.382Z",
     "videoOutput": null,
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:33:26.647Z"
+    "stageAt": "2025-10-03T20:25:53.382Z"
   },
   "cb885a395efc2dc16c952e08c08076097b9d721f3c7532a7611af4c8633428cb": {
     "fileName": "foto_1.jpg",
@@ -17,11 +17,11 @@
     "fileHash": "cb885a395efc2dc16c952e08c08076097b9d721f3c7532a7611af4c8633428cb",
     "fileSize": 1327536,
     "fileModified": "2025-09-17T18:18:41.340Z",
-    "processedAt": "2025-10-03T19:32:23.130Z",
-    "videoOutput": "./output/1759519943118_foto_1_halloween.mp4",
+    "processedAt": "2025-10-03T19:50:47.291Z",
+    "videoOutput": "./output/1759521047283_foto_1_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:32:23.130Z"
+    "stageAt": "2025-10-03T19:50:47.291Z"
   },
   "6ef0af74a03b751468153e3c236bb9dc1a572809d1c391d062db3ef13fc36ea6": {
     "fileName": "P1466603.jpg",
@@ -29,11 +29,11 @@
     "fileHash": "6ef0af74a03b751468153e3c236bb9dc1a572809d1c391d062db3ef13fc36ea6",
     "fileSize": 1087506,
     "fileModified": "2024-10-29T04:16:44.000Z",
-    "processedAt": "2025-10-03T19:32:20.386Z",
+    "processedAt": "2025-10-03T20:31:49.049Z",
     "videoOutput": null,
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:32:20.386Z"
+    "stageAt": "2025-10-03T20:31:49.049Z"
   },
   "dda29d200728b25f51268b66e11492983fdc448110166297bdf889111bf0e47d": {
     "fileName": "P1466554.jpg",
@@ -41,11 +41,11 @@
     "fileHash": "dda29d200728b25f51268b66e11492983fdc448110166297bdf889111bf0e47d",
     "fileSize": 1015523,
     "fileModified": "2024-10-29T04:16:28.000Z",
-    "processedAt": "2025-10-03T19:35:41.940Z",
+    "processedAt": "2025-10-03T20:26:26.024Z",
     "videoOutput": null,
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:35:41.940Z"
+    "stageAt": "2025-10-03T20:26:26.024Z"
   },
   "dbec1d9c7a631b0f9706deede1893142d76b1192d7c6ee90ca183cf11cffa731": {
     "fileName": "P1466414.jpg",
@@ -53,11 +53,11 @@
     "fileHash": "dbec1d9c7a631b0f9706deede1893142d76b1192d7c6ee90ca183cf11cffa731",
     "fileSize": 1057715,
     "fileModified": "2024-10-29T04:15:36.000Z",
-    "processedAt": "2025-10-03T19:35:18.683Z",
-    "videoOutput": "./output/1759520118675_P1466414_halloween.mp4",
+    "processedAt": "2025-10-03T20:32:59.633Z",
+    "videoOutput": "./output/1759523579628_P1466414_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:35:18.683Z"
+    "stageAt": "2025-10-03T20:32:59.633Z"
   },
   "9cd142d9535ef5d2b309522cbe07560e953f7b613712a079adef8d4574f2b8e6": {
     "fileName": "P1466307.jpg",
@@ -65,11 +65,11 @@
     "fileHash": "9cd142d9535ef5d2b309522cbe07560e953f7b613712a079adef8d4574f2b8e6",
     "fileSize": 1801756,
     "fileModified": "2024-10-29T04:14:52.000Z",
-    "processedAt": "2025-10-03T19:36:18.046Z",
-    "videoOutput": "./output/1759520178036_P1466307_halloween.mp4",
+    "processedAt": "2025-10-03T20:33:30.529Z",
+    "videoOutput": "./output/1759523610516_P1466307_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:36:18.046Z"
+    "stageAt": "2025-10-03T20:33:30.529Z"
   },
   "03a2700ad88675f6bdc66f4f0ea6a91e4e1f14850b381e55274f25badd713374": {
     "fileName": "P1466297.jpg",
@@ -77,11 +77,11 @@
     "fileHash": "03a2700ad88675f6bdc66f4f0ea6a91e4e1f14850b381e55274f25badd713374",
     "fileSize": 1315686,
     "fileModified": "2024-10-29T04:14:46.000Z",
-    "processedAt": "2025-10-03T19:38:43.493Z",
-    "videoOutput": "./output/1759520323481_P1466297_halloween.mp4",
+    "processedAt": "2025-10-03T20:34:44.180Z",
+    "videoOutput": "./output/1759523684168_P1466297_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:38:43.493Z"
+    "stageAt": "2025-10-03T20:34:44.180Z"
   },
   "952afd5a8a74cbe69afe420a89b84b1558697066d793dc6a6ebb2d40440fc6e6": {
     "fileName": "CIMG6332.jpg",
@@ -89,23 +89,11 @@
     "fileHash": "952afd5a8a74cbe69afe420a89b84b1558697066d793dc6a6ebb2d40440fc6e6",
     "fileSize": 1415641,
     "fileModified": "2024-10-28T00:22:04.000Z",
-    "processedAt": "2025-10-03T19:38:33.024Z",
-    "videoOutput": "./output/1759520313013_CIMG6332_halloween.mp4",
+    "processedAt": "2025-10-03T20:35:24.608Z",
+    "videoOutput": "./output/1759523724600_CIMG6332_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:38:33.024Z"
-  },
-  "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753": {
-    "fileName": "CIMG6283.jpg",
-    "filePath": "input/CIMG6283.jpg",
-    "fileHash": "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753",
-    "fileSize": 1354759,
-    "fileModified": "2024-10-28T00:21:52.000Z",
-    "processedAt": "2025-10-03T19:37:16.906Z",
-    "videoOutput": null,
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T19:37:16.906Z"
+    "stageAt": "2025-10-03T20:35:24.608Z"
   },
   "4980e74b350023e36d4fb85dc2785efe03eca42ec40fa138c2b2d9680e5c9c0d": {
     "fileName": "CIMG6281.jpg",
@@ -113,10 +101,18 @@
     "fileHash": "4980e74b350023e36d4fb85dc2785efe03eca42ec40fa138c2b2d9680e5c9c0d",
     "fileSize": 1451305,
     "fileModified": "2024-10-28T00:21:50.000Z",
-    "processedAt": "2025-10-03T19:40:08.770Z",
-    "videoOutput": null,
+    "processedAt": "2025-10-03T20:37:03.721Z",
+    "videoOutput": "./output/1759523823711_CIMG6281_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:40:08.770Z"
+    "stageAt": "2025-10-03T20:37:03.721Z"
+  },
+  "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753": {
+    "fileName": "CIMG6283.jpg",
+    "filePath": "input/CIMG6283.jpg",
+    "fileHash": "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753",
+    "status": "processing",
+    "stage": "queued",
+    "stageAt": "2025-10-03T20:38:00.474Z"
   }
 }

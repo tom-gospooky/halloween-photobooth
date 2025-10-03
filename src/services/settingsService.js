@@ -14,6 +14,7 @@ export class SettingsService {
       resolution: '1080p',          // '480p' | '720p' | '1080p'
       duration: '5',                // '5' | '10' seconds
       seedreamImageSize: 'auto_2K', // 'auto' | 'auto_2K' | 'auto_4K' | 'square_hd' | 'landscape_16_9' | 'portrait_16_9'
+      playbackRate: 1.0             // 0.2 - 2.0
 
       // Aspect ratio is auto-detected from input image
       // Image editing always uses Seedream
@@ -60,11 +61,29 @@ export class SettingsService {
     return this.settings.seedreamImageSize || 'auto';
   }
 
+  getPlaybackRate() {
+    const v = Number(this.settings.playbackRate);
+    return isNaN(v) ? 1.0 : Math.min(2.0, Math.max(0.2, v));
+  }
+
   async save(newSettings) {
     try {
-      // Deep merge to preserve nested structure
-      this.settings = this.deepMerge(this.settings, newSettings);
-      fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings, null, 2));
+      // Whitelist keys to prevent stale/dead config from persisting
+      const allowed = ['resolution', 'duration', 'seedreamImageSize', 'playbackRate'];
+      const pruned = {};
+      for (const key of allowed) {
+        if (newSettings && Object.prototype.hasOwnProperty.call(newSettings, key)) {
+          pruned[key] = newSettings[key];
+        }
+      }
+      // Merge with current to keep existing values when not provided
+      this.settings = this.deepMerge(this.settings, pruned);
+      fs.writeFileSync(this.settingsPath, JSON.stringify({
+        resolution: this.settings.resolution,
+        duration: this.settings.duration,
+        seedreamImageSize: this.settings.seedreamImageSize,
+        playbackRate: this.getPlaybackRate()
+      }, null, 2));
       console.log('✅ Settings saved to settings.json');
       return true;
     } catch (err) {
@@ -106,6 +125,16 @@ export class SettingsService {
     return this.save(this.settings);
   }
 
+  async setPlaybackRate(rate) {
+    const v = Number(rate);
+    if (isNaN(v) || v < 0.2 || v > 2.0) {
+      console.warn(`⚠️  Invalid playbackRate: ${rate}`);
+      return false;
+    }
+    this.settings.playbackRate = v;
+    return this.save(this.settings);
+  }
+
   validate(settings = this.settings) {
     const errors = [];
 
@@ -126,9 +155,27 @@ export class SettingsService {
       errors.push(`Invalid seedream image size: ${settings.seedreamImageSize}. Must be one of: ${validSizes.join(', ')}`);
     }
 
+    // Validate playback rate
+    const v = Number(settings.playbackRate);
+    if (isNaN(v) || v < 0.2 || v > 2.0) {
+      errors.push('Playback rate must be a number between 0.2 and 2.0');
+    }
+
     return {
       valid: errors.length === 0,
       errors
+    };
+  }
+
+  // Minimal schema to support the server route (optional)
+  getSchema() {
+    return {
+      fields: {
+        resolution: { type: 'enum', values: ['480p', '720p', '1080p'] },
+        duration: { type: 'enum', values: ['5', '10'] },
+        seedreamImageSize: { type: 'enum', values: ['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3'] },
+        playbackRate: { type: 'number', min: 0.2, max: 2.0, step: 0.1, default: 1.0 }
+      }
     };
   }
 

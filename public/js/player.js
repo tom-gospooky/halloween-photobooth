@@ -53,6 +53,9 @@ class HalloweenPhotobooth {
         this.videoResolutionSelect = document.getElementById('video-resolution-select');
         this.videoDurationSelect = document.getElementById('video-duration-select');
         this.seedreamImageSizeSelect = document.getElementById('seedream-image-size-select');
+        this.playbackRateInput = document.getElementById('playback-rate-input');
+        this.playbackRateValue = document.getElementById('playback-rate-value');
+        this.currentPlaybackRate = 1.0;
 
         // Other controls
         this.fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -114,6 +117,14 @@ class HalloweenPhotobooth {
         this.settingsBtn.addEventListener('click', () => this.showSettings());
         this.settingsClose.addEventListener('click', () => this.hideSettings());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+        if (this.playbackRateInput) {
+            this.playbackRateInput.addEventListener('input', (e) => {
+                const v = parseFloat(e.target.value);
+                if (!isNaN(v)) {
+                    this.playbackRateValue.textContent = v.toFixed(1) + 'x';
+                }
+            });
+        }
 
         // Fullscreen event
         this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
@@ -1159,6 +1170,13 @@ class HalloweenPhotobooth {
             if (settings.seedreamImageSize && this.seedreamImageSizeSelect) {
                 this.seedreamImageSizeSelect.value = settings.seedreamImageSize;
             }
+
+            if (typeof settings.playbackRate !== 'undefined' && this.playbackRateInput) {
+                const v = Math.min(2.0, Math.max(0.2, Number(settings.playbackRate) || 1.0));
+                this.playbackRateInput.value = String(v);
+                this.playbackRateValue.textContent = v.toFixed(1) + 'x';
+                this.applyPlaybackRate(v);
+            }
         } catch (error) {
             console.error('Failed to load settings:', error);
         }
@@ -1174,7 +1192,8 @@ class HalloweenPhotobooth {
             const settings = {
                 resolution: this.videoResolutionSelect.value,
                 duration: this.videoDurationSelect.value,
-                seedreamImageSize: this.seedreamImageSizeSelect.value
+                seedreamImageSize: this.seedreamImageSizeSelect.value,
+                playbackRate: this.playbackRateInput ? parseFloat(this.playbackRateInput.value) : this.currentPlaybackRate
             };
 
             const response = await fetch('/api/settings', {
@@ -1187,6 +1206,10 @@ class HalloweenPhotobooth {
 
             if (response.ok) {
                 this.updateStatus('Settings saved successfully');
+                // Apply playback immediately
+                if (typeof settings.playbackRate === 'number') {
+                    this.applyPlaybackRate(settings.playbackRate);
+                }
                 this.hideSettings();
             } else {
                 this.updateStatus('Failed to save settings');
@@ -1198,6 +1221,13 @@ class HalloweenPhotobooth {
             this.saveSettingsBtn.disabled = false;
             this.saveSettingsBtn.textContent = 'Save Settings';
         }
+    }
+
+    applyPlaybackRate(rate) {
+        const v = Math.min(2.0, Math.max(0.2, Number(rate) || 1.0));
+        this.currentPlaybackRate = v;
+        if (this.video) this.video.playbackRate = v;
+        if (this.nextVideo) this.nextVideo.playbackRate = v;
     }
 }
 
