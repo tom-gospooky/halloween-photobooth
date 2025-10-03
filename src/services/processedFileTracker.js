@@ -235,6 +235,38 @@ export class ProcessedFileTracker {
     }
   }
 
+  async unmarkFile(filePath, fileName) {
+    try {
+      // Try by content hash first
+      const fileHash = this.generateFileHash(filePath);
+      let removed = false;
+      if (fileHash && this.processedFiles.has(fileHash)) {
+        this.processedFiles.delete(fileHash);
+        removed = true;
+      }
+
+      if (!removed) {
+        // Fallback: scan map for matching path/name
+        for (const [hash, record] of this.processedFiles.entries()) {
+          if (record.fileName === fileName && record.filePath === filePath) {
+            this.processedFiles.delete(hash);
+            removed = true;
+            break;
+          }
+        }
+      }
+
+      if (removed) {
+        await this.saveProcessedFiles();
+      }
+
+      return removed;
+    } catch (error) {
+      console.error(`❌ Failed to unmark file ${fileName}:`, error);
+      return false;
+    }
+  }
+
   getStatus() {
     return {
       isInitialized: this.isInitialized,

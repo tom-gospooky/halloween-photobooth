@@ -127,9 +127,13 @@ export class FalWan25Service {
 
     } catch (error) {
       console.error('❌ WAN 2.5 Preview generation failed:', error.message);
+      let code = 'UNKNOWN';
+      const msg = String(error.message || '').toLowerCase();
+      if (msg.includes('unprocessable')) code = 'UNPROCESSABLE_ENTITY';
       return {
         success: false,
         error: error.message,
+        code,
         model: 'wan-2.5-preview'
       };
     }

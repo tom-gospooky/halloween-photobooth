@@ -120,12 +120,23 @@ export class VideoGenerationService {
         // Caller logs completion
         return result.outputPath;
       } else {
-        throw new Error(result.error);
+        const err = new Error(result.error || 'WAN error');
+        if (result.code) err.code = result.code;
+        throw err;
       }
 
     } catch (error) {
-      options.logger ? options.logger.error(`WAN failed: ${error.message}`) : console.log(`❌ WAN failed: ${error.message}`);
-      options.logger ? options.logger.warn('Falling back to placeholder') : console.log('🔄 Falling back to placeholder');
+      // If WAN returned Unprocessable, bubble up so caller can reset the image
+      if (error?.code === 'UNPROCESSABLE_ENTITY' || /Unprocessable/i.test(error?.message || '')) {
+        if (options.logger) {
+          options.logger.error(`WAN failed: ${error.message}`);
+        }
+        throw error; // Let higher level decide (reset)
+      }
+      if (options.logger) {
+        options.logger.error(`WAN failed: ${error.message}`);
+        options.logger.warn('Falling back to placeholder');
+      }
       return await this.createPlaceholderVideo(imagePath, originalFileName, geminiOutputText, options?.outputDir);
     }
   }

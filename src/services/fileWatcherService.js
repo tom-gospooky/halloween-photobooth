@@ -296,7 +296,15 @@ export class FileWatcherService {
     } catch (error) {
       log.error(`Failed: ${error.message}`);
 
-      // Mark as processed even on failure to prevent retry loops that waste money
+      // Special handling: if WAN reported Unprocessable Entity, reset this image only
+      if (error?.code === 'UNPROCESSABLE_ENTITY' || /Unprocessable/i.test(error?.message || '')) {
+        await this.fileTracker.unmarkFile(file.path, file.name);
+        await this.fileTracker.setProcessingStage(file.path, file.name, 'queued');
+        log.warn('WAN unprocessable — resetting image to pending');
+        return; // Do not mark as processed
+      }
+
+      // For other failures, mark as processed to avoid costly retries
       await this.fileTracker.markFileAsProcessed(file.path, file.name, null);
       log.warn('Marked as processed to avoid retry loops');
     }
