@@ -66,7 +66,8 @@ export class FalWan25Service {
 
   async generateVideo(prompt, imagePath, options = {}) {
     try {
-      console.log('🎬 Generating video with WAN 2.5 Preview...');
+      const log = options.logger;
+      log ? log.stage('WAN 2.5 generation') : console.log('🎬 WAN 2.5 generation');
 
       if (!this.isInitialized) {
         await this.initialize();
@@ -80,8 +81,7 @@ export class FalWan25Service {
       const mimeType = this.getMimeTypeFromPath(imagePath);
       const imageDataUri = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
 
-      console.log('📸 Image converted to data URI for WAN 2.5');
-      console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
+      log ? log.info('Image prepared for API') : null;
 
       // Use provided options or defaults from settingsService
       const resolution = options.resolution || this.settingsService?.getSettings().resolution || "1080p";
@@ -97,27 +97,22 @@ export class FalWan25Service {
         enable_prompt_expansion: true  // Use LLM enhancement
       };
 
-      console.log(`⚙️  WAN 2.5 Settings: ${resolution}, ${duration}s duration`);
-      console.log(`🚫 Negative prompt: ${this.negativePrompt.substring(0, 50)}...`);
+      log ? log.info(`Settings: ${resolution}, ${duration}s`) : null;
 
       const result = await fal.run("fal-ai/wan-25-preview/image-to-video", { input });
 
       // API call successful, processing response
-      console.log('🔍 WAN 2.5 API Response structure:', JSON.stringify(Object.keys(result || {})));
-      if (result?.data?.video) {
-        console.log('🔍 Video object keys:', JSON.stringify(Object.keys(result.data.video)));
-        console.log('🔍 Video URL:', result.data.video.url);
-      }
+      log ? log.info('WAN response received') : null;
 
       // Correct path: result.data.video.url (fal.run wraps response in data object)
       if (result && result.data && result.data.video && result.data.video.url) {
-        console.log('✅ WAN 2.5 Preview video generation completed');
+        log ? log.success('WAN task complete') : console.log('✅ WAN task complete');
 
         // Download the video from the URL
         const timestamp = Date.now();
         const outputPath = `./temp/wan25_video_${timestamp}.mp4`;
 
-        await this.downloadVideo(result.data.video.url, outputPath);
+        await this.downloadVideo(result.data.video.url, outputPath, log);
 
         // Create metadata .txt file for successful WAN 2.5 generation
         await this.createMetadataFile(outputPath, originalFileName, prompt);
@@ -143,8 +138,8 @@ export class FalWan25Service {
     }
   }
 
-  async downloadVideo(videoUrl, outputPath) {
-    console.log('⬇️ Downloading video from WAN 2.5...');
+  async downloadVideo(videoUrl, outputPath, log = null) {
+    log ? log.info('Downloading video') : console.log('⬇️ Downloading video');
 
     // Prefer fetch with redirect following (Node 18+)
     try {
@@ -182,7 +177,7 @@ export class FalWan25Service {
       }
 
       const stats = fs.statSync(outputPath);
-      console.log(`✅ Video downloaded: ${outputPath} (${Math.round(stats.size / 1024)}KB)`);
+      log ? log.success(`Video downloaded (${Math.round(stats.size / 1024)}KB)`) : console.log(`✅ Video downloaded (${Math.round(stats.size / 1024)}KB)`);
       return;
     } catch (err) {
       // Fallback to https.get with manual redirect handling (rarely used if fetch works)
@@ -229,7 +224,7 @@ export class FalWan25Service {
                 return;
               }
               const stats = fs.statSync(outputPath);
-              console.log(`✅ Video downloaded: ${outputPath} (${Math.round(stats.size / 1024)}KB)`);
+              log ? log.success(`Video downloaded (${Math.round(stats.size / 1024)}KB)`) : console.log(`✅ Video downloaded (${Math.round(stats.size / 1024)}KB)`);
               resolve();
             });
 

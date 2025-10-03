@@ -56,18 +56,19 @@ export class SeedreamImageService {
     return sanitized;
   }
 
-  async editImage(imagePath, editInstruction) {
+  async editImage(imagePath, editInstruction, options = {}) {
     try {
-      console.log('🎨 Editing image with Seedream v4 Edit (fal.ai)...');
+      const log = options.logger;
+      log ? log.stage('Seedream edit') : console.log('🎨 Seedream edit');
       if (!this.isInitialized) {
         await this.initialize();
       }
 
       const sanitizedInstruction = this.sanitizeImageEditPrompt(editInstruction);
-      console.log(`📝 Edit instruction: ${sanitizedInstruction}`);
+      log ? log.info('Edit instruction prepared') : null;
 
       // Upload image to FAL storage first (Seedream requires public URLs, not data URIs)
-      console.log('📤 Uploading image to FAL storage...');
+      log ? log.info('Uploading image') : null;
 
       // Read image as buffer and create File with proper name/type
       const imgBuffer = fs.readFileSync(imagePath);
@@ -79,7 +80,7 @@ export class SeedreamImageService {
       // Create File object with proper name and MIME type (Node 18+)
       const file = new File([imgBuffer], filename, { type: mimeType });
       const imageUrl = await fal.storage.upload(file);
-      console.log('✅ Image uploaded to FAL:', imageUrl);
+      log ? log.info('Image uploaded') : null;
 
       // Get image dimensions for logging
       const dimensions = await getImageDimensions(imagePath);
@@ -87,7 +88,7 @@ export class SeedreamImageService {
       // Get image size from settings (defaults to "auto")
       const imageSize = this.settingsService?.getSeedreamImageSize() || "auto";
 
-      console.log(`📐 Using image size: ${imageSize} (input dimensions ${dimensions.width}x${dimensions.height})`);
+      log ? log.info(`Image size: ${imageSize} (${dimensions.width}x${dimensions.height})`) : null;
 
       // Build input with auto-detected settings
       const input = {
@@ -99,14 +100,7 @@ export class SeedreamImageService {
       };
 
       // Call Seedream v4 Edit API with correct parameters
-      console.log('🚀 Calling Seedream v4 Edit API...');
-      console.log('📦 Request payload:', JSON.stringify({
-        prompt: input.prompt.substring(0, 100),
-        image_size: input.image_size,
-        num_images: input.num_images,
-        enable_safety_checker: input.enable_safety_checker,
-        image_url: input.image_urls[0]
-      }));
+      log ? log.info('Calling Seedream API') : null;
 
       const result = await fal.subscribe('fal-ai/bytedance/seedream/v4/edit', {
         input,
@@ -117,8 +111,7 @@ export class SeedreamImageService {
           }
         }
       });
-      console.log('📥 Seedream API response received');
-      console.log('🔍 Response structure:', JSON.stringify(Object.keys(result || {})));
+      log ? log.info('Seedream response received') : null;
 
       // Extract image URL from response - FAL API returns images directly in result
       const url = result?.images?.[0]?.url           // Standard FAL response
@@ -127,7 +120,7 @@ export class SeedreamImageService {
         || result?.data?.output?.[0]?.url            // Legacy structure
         || result?.data?.url;                        // Direct URL
 
-      console.log('🔗 Extracted URL:', url ? 'Found ✅' : 'Not found ❌');
+      log ? log.info(url ? 'URL extracted' : 'No URL in response') : null;
 
       if (!url) {
         console.error('❌ Full Seedream response:', JSON.stringify(result, null, 2));
@@ -139,8 +132,7 @@ export class SeedreamImageService {
       const editedImagePath = `./temp/${timestamp}_${originalName}_edited.jpg`;
       await this.downloadFile(url, editedImagePath);
 
-      console.log(`✅ Image edited successfully: ${editedImagePath}`);
-      console.log(`📄 Source MIME type: ${mimeType}, saved as JPG`);
+      log ? log.success('Edited image downloaded') : console.log('✅ Edited image downloaded');
       return editedImagePath;
     } catch (error) {
       console.error('❌ Seedream image editing failed:', error.message);
@@ -150,7 +142,7 @@ export class SeedreamImageService {
         stack: error.stack?.split('\n')[0],
         response: error.response?.data || error.response || 'No response data'
       }));
-      console.log('🔄 Falling back to original image');
+      options.logger ? options.logger.warn('Seedream failed, falling back to original image') : console.log('🔄 Seedream fallback to original');
       return imagePath;
     }
   }

@@ -1,5 +1,6 @@
 import { ProcessedFileTracker } from './processedFileTracker.js';
 import path from 'path';
+import { createImageLogger } from '../utils/logger.js';
 
 export class FileWatcherService {
   constructor(localStorageService, photoAnalysisService, videoGenerationService) {
@@ -87,7 +88,8 @@ export class FileWatcherService {
         // Schedule processing without awaiting (parallel within concurrency limit)
         const task = this.processNewPhoto(file)
           .catch((err) => {
-            console.error('Process task error:', err);
+            const log = createImageLogger(file.path, file.name);
+            log.error(`Task error: ${err.message}`);
           })
           .finally(() => {
             this.activeTasks.delete(task);
@@ -103,7 +105,8 @@ export class FileWatcherService {
 
   async processNewPhoto(file) {
     const overallStart = Date.now();
-    console.log(`🎃 Processing photo: ${file.name}`);
+    const log = createImageLogger(file.path, file.name);
+    log.stage('Start processing');
 
     // Timing tracking object
     const timing = {
@@ -117,14 +120,14 @@ export class FileWatcherService {
 
     try {
       // Step 1: Generate dual prompts (Veo3 + image edit) with Gemini 2.5 Flash + master prompt
-      console.log('📝 Step 1: Generating dual prompts with Gemini 2.5 Flash + master prompt...');
+      log.stage('Prompt generation');
       const promptStart = Date.now();
       const dualPrompts = await this.photoAnalysis.generateDualPrompts(file.path);
       timing.promptGeneration = (Date.now() - promptStart) / 1000;
-      console.log(`⏱️  Prompt generation completed in ${timing.promptGeneration.toFixed(2)}s`);
+      log.info(`Prompt ready (${timing.promptGeneration.toFixed(2)}s)`);
 
       // Step 2: Generate video with image editing workflow
-      console.log('🎬 Step 2: Editing image and generating video with new workflow...');
+      log.stage('Image editing + video generation');
       const workflowStart = Date.now();
       const result = await this.videoGeneration.generateVideoWithImageEdit(
         dualPrompts.veoPrompt,
@@ -134,15 +137,19 @@ export class FileWatcherService {
         {
           onImageEditStart: async () => {
             await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
+            log.info('Image edit started');
           },
           onImageEditComplete: async () => {
             await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
+            log.info('Image edit complete');
           },
           onVideoStart: async () => {
             await this.fileTracker.setProcessingStage(file.path, file.name, 'video');
+            log.info('Video generation started');
           },
           onVideoComplete: async () => {
             await this.fileTracker.setProcessingStage(file.path, file.name, 'video');
+            log.info('Video generation complete');
           }
         }
       );
@@ -159,7 +166,7 @@ export class FileWatcherService {
         timing.imageEdit = workflowTime * 0.3; // Estimate
         timing.videoGeneration = workflowTime * 0.7; // Estimate
       }
-      console.log(`⏱️  Image edit: ${timing.imageEdit.toFixed(2)}s | Video gen: ${timing.videoGeneration.toFixed(2)}s`);
+      log.info(`Durations — edit: ${timing.imageEdit.toFixed(2)}s, video: ${timing.videoGeneration.toFixed(2)}s`);
 
       // Calculate total timing
       timing.total = (Date.now() - overallStart) / 1000;
@@ -194,19 +201,19 @@ export class FileWatcherService {
           // Do not copy placeholders or invalid files as .mp4 into output
           console.warn(`⚠️  Skipping output copy — ${isPlaceholder ? 'placeholder' : 'invalid'} file: ${videoPath}`);
         } else {
-          console.log('📁 Moving video to output folder...');
+        log.stage('Saving outputs');
           videoFileName = `${timestamp}_${baseName}_halloween.mp4`;
 
           // Copy video to output folder
           await this.localStorage.copyFile(videoPath, videoFileName, 'output');
           finalVideoPath = `./output/${videoFileName}`;
-          console.log('✅ Video saved to output folder');
+        log.success('Video saved to output');
 
           // Copy edited image to output folder if it exists and is different from original
           if (editedImagePath && editedImagePath !== file.path && fs.default.existsSync(editedImagePath)) {
             editedImageFileName = `${timestamp}_${baseName}_edited.jpg`;
             await this.localStorage.copyFile(editedImagePath, editedImageFileName, 'output');
-            console.log('✅ Edited image saved to output folder');
+          log.success('Edited image saved to output');
           }
 
         }
@@ -253,15 +260,15 @@ export class FileWatcherService {
         // Write JSON metadata file
         const outputJsonPath = `./output/${timestamp}_${baseName}_halloween.json`;
         fs.default.writeFileSync(outputJsonPath, JSON.stringify(metadata, null, 2));
-        console.log('✅ Structured JSON metadata saved');
-        console.log(`⏱️  Total processing time: ${timing.total.toFixed(2)}s`);
+        log.success('Metadata saved');
+        log.info(`Total time: ${timing.total.toFixed(2)}s`);
 
         // Clean up temp files
         try {
           // Clean up temp only if file exists
           if (fs.default.existsSync(videoPath)) {
             fs.default.unlinkSync(videoPath);
-            console.log('🧹 Cleaned up temp video file');
+          log.info('Cleaned temp video');
           }
 
           // Clean up any old .txt metadata files from temp (legacy)
@@ -271,13 +278,13 @@ export class FileWatcherService {
 
           if (fs.default.existsSync(tempTxtPath)) {
             fs.default.unlinkSync(tempTxtPath);
-            console.log('🧹 Cleaned up temp txt file');
+            log.info('Cleaned temp txt');
           }
 
           // Clean up edited image from temp if it exists and is different from original
           if (editedImagePath && editedImagePath !== file.path && fs.default.existsSync(editedImagePath)) {
             fs.default.unlinkSync(editedImagePath);
-            console.log('🧹 Cleaned up temp edited image');
+            log.info('Cleaned temp edited image');
           }
         } catch (cleanupError) {
           console.warn('⚠️  Could not clean up temp files:', cleanupError.message);
@@ -286,16 +293,14 @@ export class FileWatcherService {
 
       // Step 4: Mark file as successfully processed (KEEP ORIGINAL IN INPUT FOLDER)
       await this.fileTracker.markFileAsProcessed(file.path, file.name, finalVideoPath);
-      console.log('✅ Photo remains in input folder for future reference');
-      console.log(`✅ Single-use processing completed in ${timing.total.toFixed(2)}s`);
-      console.log(`💰 Cost-efficient: ${file.name} will never be processed again`);
+      log.success(`Completed in ${timing.total.toFixed(2)}s`);
 
     } catch (error) {
-      console.error(`❌ Failed to process photo ${file.name}:`, error);
+      log.error(`Failed: ${error.message}`);
 
       // Mark as processed even on failure to prevent retry loops that waste money
       await this.fileTracker.markFileAsProcessed(file.path, file.name, null);
-      console.log('⚠️  File marked as processed despite error to prevent costly retries');
+      log.warn('Marked as processed to avoid retry loops');
     }
   }
 

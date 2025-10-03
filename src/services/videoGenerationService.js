@@ -42,7 +42,7 @@ export class VideoGenerationService {
       try { progress.onImageEditStart && progress.onImageEditStart(); } catch {}
       console.log('🎨 Step 1: Editing image with Seedream v4 Edit (fal.ai)...');
       const imageEditStart = Date.now();
-      const editedImagePath = await this.imageEditService.editImage(originalImagePath, imageEditPrompt);
+      const editedImagePath = await this.imageEditService.editImage(originalImagePath, imageEditPrompt, { logger: progress.logger });
       try { progress.onImageEditComplete && progress.onImageEditComplete(editedImagePath); } catch {}
       timing.imageEdit = (Date.now() - imageEditStart) / 1000;
       console.log(`⏱️  Image editing completed in ${timing.imageEdit.toFixed(2)}s`);
@@ -51,7 +51,7 @@ export class VideoGenerationService {
       console.log('🎬 Step 2: Generating video with edited image...');
       try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
-      const videoPath = await this.generateVideo(veoPrompt, editedImagePath, originalFileName);
+      const videoPath = await this.generateVideo(veoPrompt, editedImagePath, originalFileName, { logger: progress.logger });
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;
       console.log(`⏱️  Video generation completed in ${timing.videoGeneration.toFixed(2)}s`);
       try { progress.onVideoComplete && progress.onVideoComplete(videoPath); } catch {}
@@ -69,7 +69,7 @@ export class VideoGenerationService {
       // Fallback to original workflow without image editing
       try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
-      const videoPath = await this.generateVideo(veoPrompt, originalImagePath, originalFileName);
+      const videoPath = await this.generateVideo(veoPrompt, originalImagePath, originalFileName, { logger: progress.logger });
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;
       timing.imageEdit = 0; // Failed, so 0 time
 
@@ -88,7 +88,7 @@ export class VideoGenerationService {
         await this.initialize();
       }
 
-      console.log(`🎬 Generating video with WAN 2.5 Preview using Gemini output...`);
+      options.logger ? options.logger.stage('WAN 2.5 via Gemini output') : console.log('🎬 WAN 2.5 via Gemini');
 
       // Dry-run short-circuit: create placeholder only, no network calls
       if (options?.dryRun) {
@@ -96,8 +96,7 @@ export class VideoGenerationService {
         return await this.createPlaceholderVideo(imagePath, originalFileName, geminiOutputText, options.outputDir);
       }
 
-      console.log(`📝 Using Gemini 2.5 Flash output text for WAN 2.5 Preview`);
-      console.log(`📄 Text length: ${geminiOutputText.length} characters`);
+      options.logger ? options.logger.info(`Prompt length ${geminiOutputText.length}`) : null;
 
       // Detect aspect ratio from input image
       const aspectRatio = await detectAspectRatio(imagePath);
@@ -112,21 +111,20 @@ export class VideoGenerationService {
         duration: parseInt(settings.duration || "5")
       };
 
-      console.log(`📐 Using aspect ratio: ${aspectRatio} (auto-detected from image)`);
-      console.log(`⚙️  Resolution: ${genOptions.resolution}, Duration: ${genOptions.duration}s`);
+      options.logger ? options.logger.info(`AR ${aspectRatio}, ${genOptions.resolution}/${genOptions.duration}s`) : null;
 
-      const result = await this.wan25Service.generateVideo(geminiOutputText, imagePath, genOptions);
+      const result = await this.wan25Service.generateVideo(geminiOutputText, imagePath, { ...genOptions, logger: options.logger });
 
       if (result.success) {
-        console.log(`✅ Video generated with WAN 2.5 Preview: ${result.outputPath}`);
+        options.logger ? options.logger.success('WAN 2.5 video generated') : console.log('✅ WAN 2.5 video generated');
         return result.outputPath;
       } else {
         throw new Error(result.error);
       }
 
     } catch (error) {
-      console.log(`❌ WAN 2.5 Preview generation failed: ${error.message}`);
-      console.log('🔄 Falling back to placeholder video...');
+      options.logger ? options.logger.error(`WAN failed: ${error.message}`) : console.log(`❌ WAN failed: ${error.message}`);
+      options.logger ? options.logger.warn('Falling back to placeholder') : console.log('🔄 Falling back to placeholder');
       return await this.createPlaceholderVideo(imagePath, originalFileName, geminiOutputText, options?.outputDir);
     }
   }
