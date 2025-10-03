@@ -88,7 +88,7 @@ export class VideoGenerationService {
         await this.initialize();
       }
 
-      options.logger ? options.logger.stage('WAN 2.5 via Gemini output') : console.log('🎬 WAN 2.5 via Gemini');
+      // Caller logs video generation start/complete; keep quiet here
 
       // Dry-run short-circuit: create placeholder only, no network calls
       if (options?.dryRun) {
@@ -96,7 +96,7 @@ export class VideoGenerationService {
         return await this.createPlaceholderVideo(imagePath, originalFileName, geminiOutputText, options.outputDir);
       }
 
-      options.logger ? options.logger.info(`Prompt length ${geminiOutputText.length}`) : null;
+      //
 
       // Detect aspect ratio from input image
       const aspectRatio = await detectAspectRatio(imagePath);
@@ -111,12 +111,12 @@ export class VideoGenerationService {
         duration: parseInt(settings.duration || "5")
       };
 
-      options.logger ? options.logger.info(`AR ${aspectRatio}, ${genOptions.resolution}/${genOptions.duration}s`) : null;
+      //
 
       const result = await this.wan25Service.generateVideo(geminiOutputText, imagePath, { ...genOptions, logger: options.logger });
 
       if (result.success) {
-        options.logger ? options.logger.success('WAN 2.5 video generated') : console.log('✅ WAN 2.5 video generated');
+        // Caller logs completion
         return result.outputPath;
       } else {
         throw new Error(result.error);

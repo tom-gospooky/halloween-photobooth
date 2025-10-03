@@ -4,9 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Halloween AI Photobooth</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        halloween: {
+                            orange: '#ff6b35',
+                            purple: '#6b2fb5',
+                            green: '#4caf50',
+                            dark: '#1a1a1a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="bg-black overflow-hidden">
     <div id="video-container">
         <video id="main-video" autoplay muted></video>
         <canvas id="glitch-canvas"></canvas>
@@ -64,66 +86,111 @@
         <div id="gallery-grid"></div>
     </div>
 
-    <!-- Settings & Admin Panel (Merged) -->
-    <div id="settings-panel" class="hidden">
-        <div id="settings-header">
-            <h2>Settings</h2>
-            <button id="settings-close" class="close-btn">&times;</button>
-        </div>
-        <div id="settings-content">
-            <!-- Video Model Selection -->
-            <div id="model-settings">
-                <h3>Video Generation</h3>
-                <div class="setting-group">
-                    <label for="video-model-select">Model:</label>
-                    <select id="video-model-select">
-                        <option value="wan-2.2-turbo">WAN 2.2 Turbo</option>
-                        <option value="wan-2.5-preview">WAN 2.5 Preview (1080p)</option>
-                        <option value="kling-v2.5-turbo">Kling v2.5 Turbo</option>
-                    </select>
+    <!-- Settings & Admin Panel (Modern Tailwind UI) -->
+    <div id="settings-panel" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-gray-900 rounded-2xl max-w-2xl w-full border border-halloween-orange/30 shadow-2xl">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-800">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">⚙️</span>
+                        <h2 class="text-2xl font-bold text-halloween-orange">Settings</h2>
+                    </div>
+                    <button id="settings-close" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                 </div>
-                <div class="model-info" id="model-info">
-                    <p>Aspect ratio: Auto-detected from input image (fallback: 16:9)</p>
+
+                <!-- Content -->
+                <div class="p-6 space-y-6">
+                    <!-- Video Model Info (Fixed) -->
+                    <div class="bg-gray-800 rounded-lg p-4 border border-halloween-orange/50">
+                        <h3 class="text-lg font-semibold mb-2 flex items-center gap-2 text-white">
+                            <span>🎬</span>
+                            Video Generation
+                        </h3>
+                        <div class="text-sm text-gray-300 space-y-1">
+                            <p><strong class="text-halloween-orange">Model:</strong> WAN 2.5 Preview (fal.ai)</p>
+                            <p><strong class="text-halloween-orange">Aspect Ratio:</strong> Auto-detected from input image</p>
+                        </div>
+                    </div>
+
+                    <!-- Resolution Settings -->
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-white">
+                            <span>📐</span>
+                            Resolution
+                        </h3>
+                        <select id="video-resolution-select" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-halloween-orange">
+                            <option value="480p">480p - Standard Definition</option>
+                            <option value="720p">720p - High Definition</option>
+                            <option value="1080p">1080p - Full HD</option>
+                        </select>
+                    </div>
+
+                    <!-- Duration Settings -->
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-white">
+                            <span>⏱️</span>
+                            Video Duration
+                        </h3>
+                        <select id="video-duration-select" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-halloween-orange">
+                            <option value="5">5 seconds</option>
+                            <option value="10">10 seconds</option>
+                        </select>
+                    </div>
+
+                    <!-- Seedream Image Size Settings -->
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-white">
+                            <span>🎨</span>
+                            Image Edit Size (Seedream)
+                        </h3>
+                        <select id="seedream-image-size-select" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-halloween-orange">
+                            <option value="auto">Auto - Basic Quality</option>
+                            <option value="auto_2K">Auto 2K - High Quality (Recommended)</option>
+                            <option value="auto_4K">Auto 4K - Maximum Quality</option>
+                            <option value="square_hd">Square HD</option>
+                            <option value="landscape_16_9">Landscape 16:9</option>
+                            <option value="portrait_16_9">Portrait 16:9</option>
+                            <option value="landscape_4_3">Landscape 4:3</option>
+                            <option value="portrait_4_3">Portrait 4:3</option>
+                        </select>
+                    </div>
+
+                    <!-- Save Button -->
+                    <button id="save-settings-btn" class="w-full bg-halloween-orange hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                        💾 Save Settings
+                    </button>
+
+                    <!-- System Status -->
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-white">
+                            <span>📊</span>
+                            System Status
+                        </h3>
+                        <div id="stats-content" class="grid grid-cols-2 gap-3 text-sm mb-4"></div>
+
+                        <!-- Input Folder Status -->
+                        <div class="mt-4 pt-4 border-t border-gray-700">
+                            <h4 class="text-md font-semibold mb-3 flex items-center gap-2 text-white">
+                                <span>📁</span>
+                                Input Folder
+                            </h4>
+                            <div id="input-folder-stats" class="text-sm text-gray-300 mb-3"></div>
+                            <div id="input-file-list" class="max-h-64 overflow-y-auto space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- System Actions -->
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-white">
+                            <span>🔧</span>
+                            System Actions
+                        </h3>
+                        <button id="reset-input-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                            🔄 Reset Input Processing
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Duration Settings -->
-            <div id="duration-settings">
-                <h3>Video Duration</h3>
-                <div class="setting-group">
-                    <label for="video-duration-select">Duration:</label>
-                    <select id="video-duration-select">
-                        <option value="5">5 seconds</option>
-                        <option value="10">10 seconds</option>
-                    </select>
-                </div>
-                <p class="setting-note">Only applies to WAN 2.5 and Kling models</p>
-            </div>
-
-            <!-- Image Editing Settings -->
-            <div id="image-settings">
-                <h3>Image Editing (Seedream)</h3>
-                <div class="setting-group">
-                    <label for="image-variations">Number of Variations:</label>
-                    <input type="range" id="image-variations" min="1" max="4" value="1" step="1">
-                    <span id="variations-value">1</span>
-                </div>
-                <p class="setting-note">Generate multiple edited image versions</p>
-            </div>
-
-            <!-- Save Button -->
-            <button id="save-settings-btn" class="admin-action-btn">Save Settings</button>
-
-            <!-- System Status -->
-            <div id="system-stats">
-                <h3>System Status</h3>
-                <div id="stats-content"></div>
-            </div>
-
-            <!-- System Actions -->
-            <div id="admin-actions">
-                <h3>System Actions</h3>
-                <button id="reset-input-btn" class="admin-action-btn reset">Reset Input Processing</button>
             </div>
         </div>
     </div>

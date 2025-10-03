@@ -1,6 +1,7 @@
 {
-  "videoModel": "kling-v2.5-turbo",
+  "resolution": "480p",
   "duration": "5",
+  "videoModel": "kling-v2.5-turbo",
   "imageVariations": 1,
   "seedream": {
     "numImages": 1,

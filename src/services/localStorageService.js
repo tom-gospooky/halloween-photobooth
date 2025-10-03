@@ -136,7 +136,6 @@ export class LocalStorageService {
     try {
       const targetPath = path.join(this.folders[targetFolder], fileName);
       fs.copyFileSync(sourcePath, targetPath);
-      console.log(`✅ File copied to ${targetFolder}: ${fileName}`);
       return {
         id: fileName,
         name: fileName,
@@ -177,15 +176,9 @@ export class LocalStorageService {
     return fs.createReadStream(filePath);
   }
 
-  async getThumbnail(videoId) {
-    try {
-      // For now, return null since we don't have thumbnail generation
-      // In a real implementation, you would generate thumbnails from video files
-      return null;
-    } catch (error) {
-      console.error(`Error getting thumbnail for ${videoId}:`, error);
-      return null;
-    }
+  async getThumbnail(_videoId) {
+    // Thumbnails not implemented yet
+    return null;
   }
 
   async deleteVideo(videoId) {

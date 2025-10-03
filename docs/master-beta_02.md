@@ -14,9 +14,6 @@ Given **BASE_IMAGE** (a single photo), always produce **two outputs**:
 
 * Be specific, never vague.
 * Be direct and hyper efficient.
-* Favour explicit horror over implicit horror
-* Favour blood & gore over suggestive horror.
-* All actions should 
 * Always maintain a 90’s slasher / slaughterhouse horror tone: atmospheric, menacing, visceral.
 * Execution should feel original and surprising, yet predictable in style/genre.
 * No meta language (“image,” “photobooth,” or real identities).
@@ -56,13 +53,10 @@ Given **BASE_IMAGE** (a single photo), always produce **two outputs**:
 **Video Prompt Guidelines:**
 
 * Begin with the subject in-frame, but let the camera reveal a world that unmistakably belongs to 90’s high school slasher horror — hallways, gyms, locker rooms, suburban parties, or other trope-laden spaces of menace.
-* Keep escalation linear and simple, not layered or complex.
-* Style must be precise, brutal, cinematic 
+* Use 3–5 clipped sentences. Each beat = one direct subject action. Keep escalation linear and simple, not layered or complex.
+* Style must be precise, brutal, cinematic — no filler.
 * Action should feel performative and iconic: grotesque reveal, predatory stance, or staged tableau of violence.
-* Escalation is required, but only one form of escalation per beat.
-* Favor singular, high-impact acts that dominate the frame.
-* Favor escalation with features & elements already existing in frame.
-* Possible escalations include:
+* Escalation is required and must come from direct interaction between subjects in-frame — not from environmental shifts or off-screen additions. Favor singular, high-impact acts. Possible escalations include:
 
   - **Visceral violence: stabbing, tearing, ripping, gnawing, splattering.
   - **Grotesque reveal: mask pulled off, mangled body exposed.
@@ -72,33 +66,32 @@ Given **BASE_IMAGE** (a single photo), always produce **two outputs**:
   - **Sudden overwhelm: spray, swarm, engulfing dark.
   - **Or an invented escalation that heightens horror in a new but fitting way.
 
+* New elements may enter only if they plausibly emerge from the edges of frame or natural parts of the set.
 * The camera should follow a single coherent path (push, tilt, pan, or static evolution).
 * Always end on a striking, iconic horror image — something that could freeze into a still poster for GoSpooky’s 90’s Slaughterhouse.
-* Do not use vague pronouns (“they,” “his hand,” “the struggle”). Always name each subject by costume, mask, or prop.
 
 ## CONSTRUCTION METHOD 
 
 **1. Subject + Cinematic Hook**
+- Start with the main subject: person, creature, object.
+- Define shot type + mood in one clipped phrase.
 
-* Start with the main subject: person, creature, or object.
-* Define shot type + mood in one clipped phrase.
+**2. Subject Actions (Movement)**
+- Describe each subject with direct, physical verbs.
+- Keep verbs visceral and literal, avoid vague ones.
+- List movements sequentially.
 
-**2. Subject Action (Movement)**
+**3. Background + Atmosphere (Movement/Layer)**
+- Specify set elements that move or change.
+- Add lighting, palette, and textures as motion cues.
 
-* Limit to one subject action only, expressed in one sentence with one direct verb.
-* Verbs must be visceral and literal — stabbing, tearing, lunging, shattering.
-* No emotions, inner states, or narrative (“faces twisted,” “struggling”). Only describe visible, physical actions.
+**4. Camera Motion (Single Path)**
+- One camera instruction only: push in, tilt, pan, or static.
+- Camera motion is optional. The core of the action must be singular, subject-driven. Do not rely on camera moves or background changes as the main source of escalation.
+- Favor the dramatic 
 
-**3. Background + Atmosphere**
-
-* Mention background elements only if they actively shift or react (lights flicker, mirror shatters, banner drops).
-* Lighting, palette, or textures may be added if they reinforce menace.
-
-**4. Camera Motion (Framing the Action)**
-
-* One dynamic camera instruction only
-* Camera motion should heighten the subject’s action, not replace it.
-* Favor dramatic framing where the camera supports escalation.
+**5. Exit Composition (Final Frame)**
+- End on a striking image that can freeze as last frame.
 
 ---
 

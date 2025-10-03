@@ -55,15 +55,19 @@
             transition: all 0.2s ease;
         }
 
-        /* Model card hover effect */
-        .model-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
-        }
-
         /* Range input styling */
         input[type="range"] {
             accent-color: #ff6b35;
+        }
+
+        /* Radio card styling */
+        .radio-card {
+            transition: all 0.2s ease;
+        }
+
+        .radio-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
         }
     </style>
 </head>
@@ -77,7 +81,7 @@
                         <span class="text-3xl">🎃</span>
                         <div>
                             <h1 class="text-2xl font-bold text-halloween-orange">Halloween AI Settings</h1>
-                            <p class="text-sm text-gray-400">Configure all AI model parameters</p>
+                            <p class="text-sm text-gray-400">Configure video generation parameters</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -99,7 +103,7 @@
                         </button>
                         <button @click="saveAllSettings()"
                                 class="px-4 py-2 bg-halloween-orange hover:bg-orange-600 rounded-lg font-semibold">
-                            💾 Save All
+                            💾 Save Settings
                         </button>
                         <a href="/"
                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">
@@ -111,330 +115,157 @@
         </header>
 
         <!-- Main Content -->
-        <main class="container mx-auto px-4 py-8">
-            <!-- Model Selection -->
+        <main class="container mx-auto px-4 py-8 max-w-4xl">
+            <!-- Video Model Info (Fixed to WAN 2.5) -->
             <section class="mb-8">
-                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span>🎬</span>
-                        Video Generation Model
-                    </h2>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- WAN 2.2 Turbo -->
-                        <div @click="selectModel('wan-2.2-turbo')"
-                             :class="settings.videoModel === 'wan-2.2-turbo' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
-                             class="model-card cursor-pointer p-4 border-2 rounded-lg">
-                            <div class="flex items-start justify-between mb-2">
-                                <h3 class="font-semibold">WAN 2.2 Turbo</h3>
-                                <span x-show="settings.videoModel === 'wan-2.2-turbo'" class="text-halloween-orange">✓</span>
-                            </div>
-                            <p class="text-sm text-gray-400 mb-2">Maximum control with 10 parameters</p>
-                            <div class="text-xs text-gray-500 space-y-1">
-                                <div>• Up to 720p</div>
-                                <div>• 17-161 frames</div>
-                                <div>• Advanced tuning</div>
-                            </div>
+                <div class="bg-gray-800 rounded-xl p-6 border border-halloween-orange/50">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">🎬</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-halloween-orange">Video Generation Model</h2>
+                            <p class="text-gray-400">WAN 2.5 Preview (fal.ai)</p>
                         </div>
-
-                        <!-- WAN 2.5 Preview -->
-                        <div @click="selectModel('wan-2.5-preview')"
-                             :class="settings.videoModel === 'wan-2.5-preview' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
-                             class="model-card cursor-pointer p-4 border-2 rounded-lg">
-                            <div class="flex items-start justify-between mb-2">
-                                <h3 class="font-semibold">WAN 2.5 Preview</h3>
-                                <span x-show="settings.videoModel === 'wan-2.5-preview'" class="text-halloween-orange">✓</span>
-                            </div>
-                            <p class="text-sm text-gray-400 mb-2">High quality with AI enhancement</p>
-                            <div class="text-xs text-gray-500 space-y-1">
-                                <div>• Up to 1080p</div>
-                                <div>• 5-10 seconds</div>
-                                <div>• Prompt expansion</div>
-                            </div>
-                        </div>
-
-                        <!-- Kling v2.5 Turbo -->
-                        <div @click="selectModel('kling-v2.5-turbo')"
-                             :class="settings.videoModel === 'kling-v2.5-turbo' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
-                             class="model-card cursor-pointer p-4 border-2 rounded-lg">
-                            <div class="flex items-start justify-between mb-2">
-                                <h3 class="font-semibold">Kling v2.5 Turbo</h3>
-                                <span x-show="settings.videoModel === 'kling-v2.5-turbo'" class="text-halloween-orange">✓</span>
-                            </div>
-                            <p class="text-sm text-gray-400 mb-2">Fast with flexible ratios</p>
-                            <div class="text-xs text-gray-500 space-y-1">
-                                <div>• Multiple ratios</div>
-                                <div>• 5-10 seconds</div>
-                                <div>• CFG control</div>
-                            </div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2">
+                            High-quality image-to-video generation with AI-powered motion synthesis and prompt expansion.
+                        </p>
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-400">
+                            <div>✓ Up to 1080p resolution</div>
+                            <div>✓ 5-10 second duration</div>
+                            <div>✓ Auto aspect ratio detection</div>
+                            <div>✓ Negative prompt support</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Tabs for Different Model Settings -->
+            <!-- Resolution Setting -->
             <section class="mb-8">
-                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                    <!-- Tab Headers -->
-                    <div class="flex border-b border-gray-700 overflow-x-auto">
-                        <button @click="activeTab = 'seedream'"
-                                :class="activeTab === 'seedream' ? 'bg-halloween-orange text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'"
-                                class="px-6 py-3 font-semibold whitespace-nowrap">
-                            🎨 Image Editing (Seedream)
-                        </button>
-                        <button @click="activeTab = 'wan22'"
-                                :class="activeTab === 'wan22' ? 'bg-halloween-orange text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'"
-                                class="px-6 py-3 font-semibold whitespace-nowrap">
-                            🎬 WAN 2.2 Turbo
-                        </button>
-                        <button @click="activeTab = 'wan25'"
-                                :class="activeTab === 'wan25' ? 'bg-halloween-orange text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'"
-                                class="px-6 py-3 font-semibold whitespace-nowrap">
-                            🎬 WAN 2.5 Preview
-                        </button>
-                        <button @click="activeTab = 'kling'"
-                                :class="activeTab === 'kling' ? 'bg-halloween-orange text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'"
-                                class="px-6 py-3 font-semibold whitespace-nowrap">
-                            🎬 Kling v2.5
-                        </button>
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span>📐</span>
+                        Resolution
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 480p -->
+                        <label class="radio-card cursor-pointer">
+                            <input type="radio" name="resolution" value="480p"
+                                   x-model="settings.resolution" class="hidden">
+                            <div :class="settings.resolution === '480p' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
+                                 class="p-4 border-2 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">480p</h3>
+                                    <span x-show="settings.resolution === '480p'" class="text-halloween-orange">✓</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Standard Definition</p>
+                                <p class="text-xs text-gray-500 mt-2">Fast generation, smaller file size</p>
+                            </div>
+                        </label>
+
+                        <!-- 720p -->
+                        <label class="radio-card cursor-pointer">
+                            <input type="radio" name="resolution" value="720p"
+                                   x-model="settings.resolution" class="hidden">
+                            <div :class="settings.resolution === '720p' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
+                                 class="p-4 border-2 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">720p</h3>
+                                    <span x-show="settings.resolution === '720p'" class="text-halloween-orange">✓</span>
+                                </div>
+                                <p class="text-sm text-gray-400">High Definition</p>
+                                <p class="text-xs text-gray-500 mt-2">Balanced quality and speed</p>
+                            </div>
+                        </label>
+
+                        <!-- 1080p -->
+                        <label class="radio-card cursor-pointer">
+                            <input type="radio" name="resolution" value="1080p"
+                                   x-model="settings.resolution" class="hidden">
+                            <div :class="settings.resolution === '1080p' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
+                                 class="p-4 border-2 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">1080p</h3>
+                                    <span x-show="settings.resolution === '1080p'" class="text-halloween-orange">✓</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Full HD</p>
+                                <p class="text-xs text-gray-500 mt-2">Best quality, slower generation</p>
+                            </div>
+                        </label>
                     </div>
+                </div>
+            </section>
 
-                    <!-- Tab Content -->
-                    <div class="p-6">
-                        <!-- Seedream Settings -->
-                        <div x-show="activeTab === 'seedream'" class="space-y-6">
-                            <p class="text-gray-400 mb-4">Configure image-to-image transformation settings</p>
+            <!-- Duration Setting -->
+            <section class="mb-8">
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span>⏱️</span>
+                        Video Duration
+                    </h2>
 
-                            <!-- Num Images -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Number of Images</label>
-                                <div class="flex items-center gap-4">
-                                    <input type="range" x-model.number="settings.seedream.numImages"
-                                           min="1" max="6" step="1" class="flex-1">
-                                    <span class="text-lg font-mono bg-gray-700 px-3 py-1 rounded"
-                                          x-text="settings.seedream.numImages"></span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 5 seconds -->
+                        <label class="radio-card cursor-pointer">
+                            <input type="radio" name="duration" value="5"
+                                   x-model="settings.duration" class="hidden">
+                            <div :class="settings.duration === '5' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
+                                 class="p-4 border-2 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">5 Seconds</h3>
+                                    <span x-show="settings.duration === '5'" class="text-halloween-orange">✓</span>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">Generate 1-6 image variations</p>
+                                <p class="text-sm text-gray-400">Quick motion clip</p>
+                                <p class="text-xs text-gray-500 mt-2">Faster generation, perfect for loops</p>
                             </div>
+                        </label>
 
-                            <!-- Image Size -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Image Size</label>
-                                <select x-model="settings.seedream.imageSize"
-                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                    <option value="1024x1024">1024×1024 (1K)</option>
-                                    <option value="2048x2048">2048×2048 (2K)</option>
-                                    <option value="4096x4096">4096×4096 (4K)</option>
-                                    <option value="square_hd">Square HD</option>
-                                    <option value="portrait_4_3">Portrait 4:3</option>
-                                </select>
-                            </div>
-
-                            <!-- Seed -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Seed (Reproducibility)</label>
-                                <input type="number" x-model.number="settings.seedream.seed"
-                                       placeholder="null for random"
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                <p class="text-xs text-gray-500 mt-1">Leave empty for random, or set number for consistent results</p>
-                            </div>
-
-                            <!-- Safety Checker -->
-                            <div class="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                                <div>
-                                    <div class="font-medium">Enable Safety Checker</div>
-                                    <div class="text-xs text-gray-400">Filter inappropriate content</div>
+                        <!-- 10 seconds -->
+                        <label class="radio-card cursor-pointer">
+                            <input type="radio" name="duration" value="10"
+                                   x-model="settings.duration" class="hidden">
+                            <div :class="settings.duration === '10' ? 'border-halloween-orange bg-halloween-orange/10' : 'border-gray-600 hover:border-gray-500'"
+                                 class="p-4 border-2 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">10 Seconds</h3>
+                                    <span x-show="settings.duration === '10'" class="text-halloween-orange">✓</span>
                                 </div>
-                                <input type="checkbox" x-model="settings.seedream.enableSafetyChecker"
-                                       class="w-6 h-6">
+                                <p class="text-sm text-gray-400">Extended motion clip</p>
+                                <p class="text-xs text-gray-500 mt-2">More detailed animation and movement</p>
                             </div>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Additional Info -->
+            <section class="mb-8">
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span>ℹ️</span>
+                        Additional Information
+                    </h2>
+
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h3 class="font-semibold mb-2 text-halloween-orange">📐 Aspect Ratio</h3>
+                            <p>Automatically detected from your input images. The system will maintain the original aspect ratio of each photo.</p>
                         </div>
 
-                        <!-- WAN 2.2 Settings -->
-                        <div x-show="activeTab === 'wan22'" class="space-y-6">
-                            <p class="text-gray-400 mb-4">Maximum control with advanced parameters</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Num Frames -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Number of Frames</label>
-                                    <div class="flex items-center gap-4">
-                                        <input type="range" x-model.number="settings['wan-2.2-turbo'].numFrames"
-                                               min="17" max="161" step="1" class="flex-1">
-                                        <span class="text-lg font-mono bg-gray-700 px-3 py-1 rounded"
-                                              x-text="settings['wan-2.2-turbo'].numFrames"></span>
-                                    </div>
-                                </div>
-
-                                <!-- FPS -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Frames Per Second</label>
-                                    <div class="flex items-center gap-4">
-                                        <input type="range" x-model.number="settings['wan-2.2-turbo'].framesPerSecond"
-                                               min="4" max="60" step="1" class="flex-1">
-                                        <span class="text-lg font-mono bg-gray-700 px-3 py-1 rounded"
-                                              x-text="settings['wan-2.2-turbo'].framesPerSecond + ' fps'"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Resolution -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Resolution</label>
-                                    <select x-model="settings['wan-2.2-turbo'].resolution"
-                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                        <option value="480p">480p</option>
-                                        <option value="580p">580p</option>
-                                        <option value="720p">720p</option>
-                                    </select>
-                                </div>
-
-                                <!-- Aspect Ratio -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Aspect Ratio</label>
-                                    <select x-model="settings['wan-2.2-turbo'].aspectRatio"
-                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                        <option value="auto">Auto</option>
-                                        <option value="16:9">16:9 (Landscape)</option>
-                                        <option value="9:16">9:16 (Portrait)</option>
-                                        <option value="1:1">1:1 (Square)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Guidance Scale -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Guidance Scale</label>
-                                    <div class="flex items-center gap-4">
-                                        <input type="range" x-model.number="settings['wan-2.2-turbo'].guidanceScale"
-                                               min="1" max="10" step="0.5" class="flex-1">
-                                        <span class="text-lg font-mono bg-gray-700 px-3 py-1 rounded"
-                                              x-text="settings['wan-2.2-turbo'].guidanceScale"></span>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-1">How closely to follow prompt</p>
-                                </div>
-
-                                <!-- Seed -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Seed</label>
-                                    <input type="number" x-model.number="settings['wan-2.2-turbo'].seed"
-                                           placeholder="null for random"
-                                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                </div>
-                            </div>
-
-                            <!-- Negative Prompt -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Negative Prompt</label>
-                                <textarea x-model="settings['wan-2.2-turbo'].negativePrompt"
-                                          rows="2"
-                                          placeholder="Content to avoid..."
-                                          class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2"></textarea>
-                            </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h3 class="font-semibold mb-2 text-halloween-orange">🎨 Image Editing</h3>
+                            <p>All images are processed through Seedream for style transformation before video generation.</p>
                         </div>
 
-                        <!-- WAN 2.5 Settings -->
-                        <div x-show="activeTab === 'wan25'" class="space-y-6">
-                            <p class="text-gray-400 mb-4">High-quality generation with AI enhancement</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Resolution -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Resolution</label>
-                                    <select x-model="settings['wan-2.5-preview'].resolution"
-                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                        <option value="480p">480p</option>
-                                        <option value="720p">720p</option>
-                                        <option value="1080p">1080p (Full HD)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Duration -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Duration</label>
-                                    <select x-model="settings['wan-2.5-preview'].duration"
-                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                        <option value="5">5 seconds</option>
-                                        <option value="10">10 seconds</option>
-                                    </select>
-                                </div>
-
-                                <!-- Seed -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Seed</label>
-                                    <input type="number" x-model.number="settings['wan-2.5-preview'].seed"
-                                           placeholder="null for random"
-                                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                </div>
-                            </div>
-
-                            <!-- Negative Prompt -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Negative Prompt (max 500 chars)</label>
-                                <textarea x-model="settings['wan-2.5-preview'].negativePrompt"
-                                          rows="2"
-                                          maxlength="500"
-                                          placeholder="Content to avoid..."
-                                          class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2"></textarea>
-                            </div>
-
-                            <!-- Prompt Expansion -->
-                            <div class="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                                <div>
-                                    <div class="font-medium">Enable Prompt Expansion</div>
-                                    <div class="text-xs text-gray-400">Use LLM to enhance prompts</div>
-                                </div>
-                                <input type="checkbox" x-model="settings['wan-2.5-preview'].enablePromptExpansion"
-                                       class="w-6 h-6">
-                            </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h3 class="font-semibold mb-2 text-halloween-orange">✨ Prompt Generation</h3>
+                            <p>Creative prompts are generated using Gemini 2.5 Flash with your custom master prompt template.</p>
                         </div>
 
-                        <!-- Kling Settings -->
-                        <div x-show="activeTab === 'kling'" class="space-y-6">
-                            <p class="text-gray-400 mb-4">Fast generation with flexible aspect ratios</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Duration -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Duration</label>
-                                    <select x-model="settings['kling-v2.5-turbo'].duration"
-                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                        <option value="5">5 seconds</option>
-                                        <option value="10">10 seconds</option>
-                                    </select>
-                                </div>
-
-                                <!-- Aspect Ratio -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Aspect Ratio</label>
-                                    <select x-model="settings['kling-v2.5-turbo'].aspectRatio"
-                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
-                                        <option value="16:9">16:9 (Landscape)</option>
-                                        <option value="9:16">9:16 (Portrait)</option>
-                                        <option value="1:1">1:1 (Square)</option>
-                                    </select>
-                                </div>
-
-                                <!-- CFG Scale -->
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium mb-2">CFG Scale (Prompt Adherence)</label>
-                                    <div class="flex items-center gap-4">
-                                        <input type="range" x-model.number="settings['kling-v2.5-turbo'].cfgScale"
-                                               min="0" max="1" step="0.1" class="flex-1">
-                                        <span class="text-lg font-mono bg-gray-700 px-3 py-1 rounded"
-                                              x-text="settings['kling-v2.5-turbo'].cfgScale"></span>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-1">0 = creative, 1 = precise</p>
-                                </div>
-                            </div>
-
-                            <!-- Negative Prompt -->
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Negative Prompt (max 2500 chars)</label>
-                                <textarea x-model="settings['kling-v2.5-turbo'].negativePrompt"
-                                          rows="2"
-                                          maxlength="2500"
-                                          placeholder="Content to avoid..."
-                                          class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2"></textarea>
-                            </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h3 class="font-semibold mb-2 text-halloween-orange">🚫 Negative Prompt</h3>
+                            <p>Loaded from <code class="bg-gray-900 px-2 py-1 rounded">negative.md</code> in the root directory to ensure consistent quality.</p>
                         </div>
                     </div>
                 </div>
@@ -443,8 +274,10 @@
             <!-- Save Button (Bottom) -->
             <div class="flex justify-center">
                 <button @click="saveAllSettings()"
-                        class="px-8 py-3 bg-halloween-orange hover:bg-orange-600 rounded-lg font-bold text-lg shadow-lg">
-                    💾 Save All Settings
+                        :disabled="saving"
+                        class="px-8 py-3 bg-halloween-orange hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-bold text-lg shadow-lg">
+                    <span x-show="!saving">💾 Save Settings</span>
+                    <span x-show="saving">⏳ Saving...</span>
                 </button>
             </div>
         </main>
@@ -453,47 +286,12 @@
     <script>
         function settingsApp() {
             return {
-                activeTab: 'seedream',
                 saving: false,
                 saveSuccess: false,
                 saveError: false,
                 settings: {
-                    videoModel: 'wan-2.2-turbo',
-                    seedream: {
-                        numImages: 1,
-                        imageSize: '2048x2048',
-                        maxImages: 1,
-                        seed: null,
-                        syncMode: false,
-                        enableSafetyChecker: true
-                    },
-                    'wan-2.2-turbo': {
-                        numFrames: 81,
-                        framesPerSecond: 16,
-                        resolution: '720p',
-                        aspectRatio: 'auto',
-                        negativePrompt: '',
-                        seed: null,
-                        numInferenceSteps: 27,
-                        guidanceScale: 3.5,
-                        interpolatorModel: 'film',
-                        videoQuality: 'high'
-                    },
-                    'wan-2.5-preview': {
-                        resolution: '1080p',
-                        duration: '5',
-                        negativePrompt: '',
-                        enablePromptExpansion: true,
-                        seed: null,
-                        audioUrl: null
-                    },
-                    'kling-v2.5-turbo': {
-                        duration: '5',
-                        aspectRatio: '16:9',
-                        negativePrompt: 'blur, distort, and low quality',
-                        cfgScale: 0.5,
-                        tailImageUrl: null
-                    }
+                    resolution: '1080p',
+                    duration: '5'
                 },
 
                 async init() {
@@ -504,8 +302,14 @@
                     try {
                         const response = await fetch('/api/settings');
                         const data = await response.json();
-                        this.settings = data;
-                        console.log('Settings loaded:', data);
+
+                        // Ensure data types are correct
+                        this.settings = {
+                            resolution: data.resolution || '1080p',
+                            duration: String(data.duration || '5')
+                        };
+
+                        console.log('Settings loaded:', this.settings);
                     } catch (error) {
                         console.error('Failed to load settings:', error);
                         alert('Failed to load settings from server');
@@ -527,10 +331,11 @@
                         if (response.ok) {
                             this.saveSuccess = true;
                             setTimeout(() => this.saveSuccess = false, 3000);
+                            console.log('Settings saved successfully');
                         } else {
                             const error = await response.json();
                             console.error('Validation errors:', error.validationErrors);
-                            alert('Validation Error:\n' + error.validationErrors.join('\n'));
+                            alert('Validation Error:\n' + (error.validationErrors?.join('\n') || 'Unknown error'));
                             this.saveError = true;
                             setTimeout(() => this.saveError = false, 3000);
                         }
@@ -542,10 +347,6 @@
                     } finally {
                         this.saving = false;
                     }
-                },
-
-                selectModel(model) {
-                    this.settings.videoModel = model;
                 }
             }
         }

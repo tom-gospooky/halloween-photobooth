@@ -269,7 +269,6 @@ export class FileWatcherService {
           // Clean up temp only if file exists
           if (fs.default.existsSync(videoPath)) {
             fs.default.unlinkSync(videoPath);
-          log.info('Cleaned temp video');
           }
 
           // Clean up any old .txt metadata files from temp (legacy)
@@ -279,13 +278,11 @@ export class FileWatcherService {
 
           if (fs.default.existsSync(tempTxtPath)) {
             fs.default.unlinkSync(tempTxtPath);
-            log.info('Cleaned temp txt');
           }
 
           // Clean up edited image from temp if it exists and is different from original
           if (editedImagePath && editedImagePath !== file.path && fs.default.existsSync(editedImagePath)) {
             fs.default.unlinkSync(editedImagePath);
-            log.info('Cleaned temp edited image');
           }
         } catch (cleanupError) {
           console.warn('⚠️  Could not clean up temp files:', cleanupError.message);

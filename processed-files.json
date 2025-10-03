@@ -5,18 +5,22 @@
     "fileHash": "c52dcbf26bcb0587a2dab4a55e9cf86f4978d7669728db09b2da3991a062eda8",
     "fileSize": 1446672,
     "fileModified": "2025-09-17T20:03:31.835Z",
-    "processedAt": "2025-10-02T18:53:29.074Z",
-    "videoOutput": "./output/1759431209039_P1466584_halloween.mp4",
-    "status": "completed"
+    "processedAt": "2025-10-03T18:56:47.025Z",
+    "videoOutput": "./output/1759517807012_P1466584_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T18:56:47.025Z"
   },
-  "10bd5302092af6948916a872cd3ab280da39972a4a3c80cf9ac1766e2fcb09e0": {
-    "fileName": "P1466596.jpg",
-    "filePath": "input/P1466596.jpg",
-    "fileHash": "10bd5302092af6948916a872cd3ab280da39972a4a3c80cf9ac1766e2fcb09e0",
-    "fileSize": 891963,
-    "fileModified": "2024-10-29T12:16:43.000Z",
-    "processedAt": "2025-10-02T18:53:28.599Z",
-    "videoOutput": "./output/1759431208569_P1466596_halloween.mp4",
-    "status": "completed"
+  "cb885a395efc2dc16c952e08c08076097b9d721f3c7532a7611af4c8633428cb": {
+    "fileName": "foto_1.jpg",
+    "filePath": "input/foto_1.jpg",
+    "fileHash": "cb885a395efc2dc16c952e08c08076097b9d721f3c7532a7611af4c8633428cb",
+    "fileSize": 1327536,
+    "fileModified": "2025-09-17T18:18:41.340Z",
+    "processedAt": "2025-10-03T18:56:40.718Z",
+    "videoOutput": "./output/1759517800706_foto_1_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T18:56:40.718Z"
   }
 }

@@ -1,0 +1,172 @@
+🔄 Reset input request received
+🔄 Resetting all processed files (2 files)
+🗑️  Deleted tracking file: ./processed-files.json
+✅ All processed files reset - input folder will be treated as new
+🔍 New photo detected: P1466584.jpg
+▶️ [36cc92 P1466584.jpg] Start processing
+▶️ [36cc92 P1466584.jpg] Prompt generation
+🔍 New photo detected: foto_1.jpg
+▶️ [d7525c foto_1.jpg] Start processing
+▶️ [d7525c foto_1.jpg] Prompt generation
+• [36cc92 P1466584.jpg] Prompt ready (6.37s)
+▶️ [36cc92 P1466584.jpg] Image editing + video generation
+🎬 Generating video with image editing workflow...
+🎨 Step 1: Editing image with Seedream v4 Edit (fal.ai)...
+▶️ [36cc92 P1466584.jpg] Seedream edit
+• [36cc92 P1466584.jpg] Edit instruction prepared
+• [36cc92 P1466584.jpg] Uploading image
+• [36cc92 P1466584.jpg] Image edit started
+• [d7525c foto_1.jpg] Prompt ready (7.07s)
+▶️ [d7525c foto_1.jpg] Image editing + video generation
+🎬 Generating video with image editing workflow...
+🎨 Step 1: Editing image with Seedream v4 Edit (fal.ai)...
+▶️ [d7525c foto_1.jpg] Seedream edit
+• [d7525c foto_1.jpg] Edit instruction prepared
+• [d7525c foto_1.jpg] Uploading image
+• [d7525c foto_1.jpg] Image edit started
+• [36cc92 P1466584.jpg] Image uploaded
+• [36cc92 P1466584.jpg] Image size: auto_2K (4432x3324)
+• [36cc92 P1466584.jpg] Calling Seedream API
+⏳ Seedream status: IN_PROGRESS
+• [d7525c foto_1.jpg] Image uploaded
+• [d7525c foto_1.jpg] Image size: auto_2K (5038x3888)
+• [d7525c foto_1.jpg] Calling Seedream API
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+• [d7525c foto_1.jpg] Seedream response received
+• [d7525c foto_1.jpg] URL extracted
+⏳ Seedream status: IN_PROGRESS
+✅ [d7525c foto_1.jpg] Edited image downloaded
+⏱️  Image editing completed in 24.49s
+🎬 Step 2: Generating video with edited image...
+▶️ [d7525c foto_1.jpg] WAN 2.5 via Gemini output
+• [d7525c foto_1.jpg] Prompt length 445
+• [d7525c foto_1.jpg] Image edit complete
+• [d7525c foto_1.jpg] Video generation started
+• [d7525c foto_1.jpg] AR 16:9, 480p/5s
+▶️ [d7525c foto_1.jpg] WAN 2.5 generation
+• [d7525c foto_1.jpg] Image prepared for API
+• [d7525c foto_1.jpg] Settings: 480p, 5s
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+⏳ Seedream status: IN_PROGRESS
+• [36cc92 P1466584.jpg] Seedream response received
+• [36cc92 P1466584.jpg] URL extracted
+✅ [36cc92 P1466584.jpg] Edited image downloaded
+⏱️  Image editing completed in 29.70s
+🎬 Step 2: Generating video with edited image...
+▶️ [36cc92 P1466584.jpg] WAN 2.5 via Gemini output
+• [36cc92 P1466584.jpg] Prompt length 317
+• [36cc92 P1466584.jpg] Image edit complete
+• [36cc92 P1466584.jpg] Video generation started
+• [36cc92 P1466584.jpg] AR 16:9, 480p/5s
+▶️ [36cc92 P1466584.jpg] WAN 2.5 generation
+• [36cc92 P1466584.jpg] Image prepared for API
+• [36cc92 P1466584.jpg] Settings: 480p, 5s
+• [d7525c foto_1.jpg] WAN response received
+✅ [d7525c foto_1.jpg] WAN task complete
+• [d7525c foto_1.jpg] Downloading video
+✅ [d7525c foto_1.jpg] Video downloaded (1857KB)
+📝 Metadata JSON created: wan25_video_1759517799804.json
+✅ [d7525c foto_1.jpg] WAN 2.5 video generated
+⏱️  Video generation completed in 136.49s
+• [d7525c foto_1.jpg] Durations — edit: 24.49s, video: 136.49s
+• [d7525c foto_1.jpg] Video generation complete
+▶️ [d7525c foto_1.jpg] Saving outputs
+✅ File copied to output: 1759517800706_foto_1_halloween.mp4
+✅ [d7525c foto_1.jpg] Video saved to output
+✅ File copied to output: 1759517800706_foto_1_edited.jpg
+✅ [d7525c foto_1.jpg] Edited image saved to output
+✅ [d7525c foto_1.jpg] Metadata saved
+• [d7525c foto_1.jpg] Total time: 168.06s
+• [d7525c foto_1.jpg] Cleaned temp video
+• [d7525c foto_1.jpg] Cleaned temp edited image
+✅ [d7525c foto_1.jpg] Completed in 168.06s
+• [36cc92 P1466584.jpg] WAN response received
+✅ [36cc92 P1466584.jpg] WAN task complete
+• [36cc92 P1466584.jpg] Downloading video
+✅ [36cc92 P1466584.jpg] Video downloaded (1881KB)
+📝 Metadata JSON created: wan25_video_1759517806422.json
+✅ [36cc92 P1466584.jpg] WAN 2.5 video generated
+⏱️  Video generation completed in 138.29s
+• [36cc92 P1466584.jpg] Durations — edit: 29.70s, video: 138.29s
+• [36cc92 P1466584.jpg] Video generation complete
+▶️ [36cc92 P1466584.jpg] Saving outputs
+✅ File copied to output: 1759517807012_P1466584_halloween.mp4
+✅ [36cc92 P1466584.jpg] Video saved to output
+✅ File copied to output: 1759517807012_P1466584_edited.jpg
+✅ [36cc92 P1466584.jpg] Edited image saved to output
+✅ [36cc92 P1466584.jpg] Metadata saved
+• [36cc92 P1466584.jpg] Total time: 174.38s
+• [36cc92 P1466584.jpg] Cleaned temp video
+• [36cc92 P1466584.jpg] Cleaned temp edited image
+✅ [36cc92 P1466584.jpg] Completed in 174.38s

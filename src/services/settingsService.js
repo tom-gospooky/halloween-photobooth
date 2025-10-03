@@ -10,16 +10,14 @@ export class SettingsService {
 
   getDefaultSettings() {
     return {
-      // Model selection
-      videoModel: 'wan-2.2-turbo',
+      // Simplified settings for WAN 2.5 Preview only
+      resolution: '1080p',          // '480p' | '720p' | '1080p'
+      duration: '5',                // '5' | '10' seconds
+      seedreamImageSize: 'auto_2K', // 'auto' | 'auto_2K' | 'auto_4K' | 'square_hd' | 'landscape_16_9' | 'portrait_16_9'
 
-      // User-facing settings (simple)
-      duration: '5',           // '5' | '10' seconds (for WAN 2.5 and Kling)
-      imageVariations: 1,      // 1-4: Number of Seedream image variations
-
-      // Aspect ratio is auto-detected from input image, fallback to 16:9
-      // Resolution defaults: WAN 2.2 = 720p, WAN 2.5 = 1080p, Kling = auto
-      // FPS and frames use API defaults
+      // Aspect ratio is auto-detected from input image
+      // Image editing always uses Seedream
+      // Prompt generation always uses Gemini 2.5 Flash
     };
   }
 
@@ -54,8 +52,12 @@ export class SettingsService {
     return this.settings.duration || '5';
   }
 
-  getImageVariations() {
-    return this.settings.imageVariations || 1;
+  getResolution() {
+    return this.settings.resolution || '1080p';
+  }
+
+  getSeedreamImageSize() {
+    return this.settings.seedreamImageSize || 'auto';
   }
 
   async save(newSettings) {
@@ -75,13 +77,13 @@ export class SettingsService {
     return this.save(partial);
   }
 
-  async setVideoModel(modelId) {
-    const validModels = ['wan-2.2-turbo', 'wan-2.5-preview', 'kling-v2.5-turbo'];
-    if (!validModels.includes(modelId)) {
-      console.warn(`⚠️  Invalid model: ${modelId}`);
+  async setResolution(resolution) {
+    const validResolutions = ['480p', '720p', '1080p'];
+    if (!validResolutions.includes(resolution)) {
+      console.warn(`⚠️  Invalid resolution: ${resolution}`);
       return false;
     }
-    this.settings.videoModel = modelId;
+    this.settings.resolution = resolution;
     return this.save(this.settings);
   }
 
@@ -94,23 +96,23 @@ export class SettingsService {
     return this.save(this.settings);
   }
 
-  async setImageVariations(count) {
-    const num = parseInt(count);
-    if (num < 1 || num > 4) {
-      console.warn(`⚠️  Invalid image variations: ${count}`);
+  async setSeedreamImageSize(size) {
+    const validSizes = ['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3'];
+    if (!validSizes.includes(size)) {
+      console.warn(`⚠️  Invalid seedream image size: ${size}`);
       return false;
     }
-    this.settings.imageVariations = num;
+    this.settings.seedreamImageSize = size;
     return this.save(this.settings);
   }
 
   validate(settings = this.settings) {
     const errors = [];
 
-    // Validate video model
-    const validModels = ['wan-2.2-turbo', 'wan-2.5-preview', 'kling-v2.5-turbo'];
-    if (!validModels.includes(settings.videoModel)) {
-      errors.push(`Invalid videoModel: ${settings.videoModel}`);
+    // Validate resolution
+    const validResolutions = ['480p', '720p', '1080p'];
+    if (!validResolutions.includes(settings.resolution)) {
+      errors.push(`Invalid resolution: ${settings.resolution}. Must be one of: ${validResolutions.join(', ')}`);
     }
 
     // Validate duration
@@ -118,9 +120,10 @@ export class SettingsService {
       errors.push('Duration must be 5 or 10 seconds');
     }
 
-    // Validate image variations
-    if (settings.imageVariations < 1 || settings.imageVariations > 4) {
-      errors.push('Image variations must be 1-4');
+    // Validate seedream image size
+    const validSizes = ['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3'];
+    if (settings.seedreamImageSize && !validSizes.includes(settings.seedreamImageSize)) {
+      errors.push(`Invalid seedream image size: ${settings.seedreamImageSize}. Must be one of: ${validSizes.join(', ')}`);
     }
 
     return {

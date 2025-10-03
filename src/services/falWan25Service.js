@@ -67,7 +67,6 @@ export class FalWan25Service {
   async generateVideo(prompt, imagePath, options = {}) {
     try {
       const log = options.logger;
-      log ? log.stage('WAN 2.5 generation') : console.log('🎬 WAN 2.5 generation');
 
       if (!this.isInitialized) {
         await this.initialize();
@@ -81,7 +80,7 @@ export class FalWan25Service {
       const mimeType = this.getMimeTypeFromPath(imagePath);
       const imageDataUri = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
 
-      log ? log.info('Image prepared for API') : null;
+      // Minimal logging — caller logs the stage
 
       // Use provided options or defaults from settingsService
       const resolution = options.resolution || this.settingsService?.getSettings().resolution || "1080p";
@@ -97,16 +96,15 @@ export class FalWan25Service {
         enable_prompt_expansion: true  // Use LLM enhancement
       };
 
-      log ? log.info(`Settings: ${resolution}, ${duration}s`) : null;
+      //
 
       const result = await fal.run("fal-ai/wan-25-preview/image-to-video", { input });
 
-      // API call successful, processing response
-      log ? log.info('WAN response received') : null;
+      //
 
       // Correct path: result.data.video.url (fal.run wraps response in data object)
       if (result && result.data && result.data.video && result.data.video.url) {
-        log ? log.success('WAN task complete') : console.log('✅ WAN task complete');
+        // Caller will log video completion
 
         // Download the video from the URL
         const timestamp = Date.now();
@@ -139,7 +137,7 @@ export class FalWan25Service {
   }
 
   async downloadVideo(videoUrl, outputPath, log = null) {
-    log ? log.info('Downloading video') : console.log('⬇️ Downloading video');
+    // Keep download logs minimal
 
     // Prefer fetch with redirect following (Node 18+)
     try {
@@ -176,12 +174,11 @@ export class FalWan25Service {
         throw sigErr;
       }
 
-      const stats = fs.statSync(outputPath);
-      log ? log.success(`Video downloaded (${Math.round(stats.size / 1024)}KB)`) : console.log(`✅ Video downloaded (${Math.round(stats.size / 1024)}KB)`);
+      // download complete
       return;
     } catch (err) {
       // Fallback to https.get with manual redirect handling (rarely used if fetch works)
-      console.warn(`⚠️ fetch download failed (${err.message}). Falling back to https.get with redirect handling`);
+      if (log) log.warn(`fetch download failed (${err.message}); trying https.get with redirects`);
 
       const follow = (url, redirectsLeft = 5) => new Promise((resolve, reject) => {
         const handle = (requestUrl, remaining) => {
@@ -223,8 +220,7 @@ export class FalWan25Service {
                 reject(e);
                 return;
               }
-              const stats = fs.statSync(outputPath);
-              log ? log.success(`Video downloaded (${Math.round(stats.size / 1024)}KB)`) : console.log(`✅ Video downloaded (${Math.round(stats.size / 1024)}KB)`);
+              // download complete
               resolve();
             });
 
@@ -263,7 +259,6 @@ export class FalWan25Service {
       };
 
       fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-      console.log(`📝 Metadata JSON created: ${metadataPath.split('/').pop()}`);
 
       return metadataPath;
     } catch (error) {
