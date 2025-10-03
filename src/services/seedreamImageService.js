@@ -126,15 +126,49 @@ export class SeedreamImageService {
       // Completion is logged by the caller via progress callback
       return editedImagePath;
     } catch (error) {
+      // Provide a concise, helpful details line if possible
       console.error('❌ Seedream image editing failed:', error.message);
-      console.error('❌ Error details:', JSON.stringify({
-        name: error.name,
-        message: error.message,
-        stack: error.stack?.split('\n')[0],
-        response: error.response?.data || error.response || 'No response data'
-      }));
+      const details = await this.parseFalErrorLike(error);
+      if (options.logger && details?.reason) {
+        options.logger.warn(`Details: ${details.reason}`);
+      } else {
+        console.error('❌ Error details:', JSON.stringify({
+          name: error.name,
+          message: error.message,
+          stack: error.stack?.split('\n')[0]
+        }));
+      }
       options.logger ? options.logger.warn('Seedream failed — using original image') : null;
       return imagePath;
+    }
+  }
+
+  async parseFalErrorLike(error) {
+    try {
+      const info = {};
+      const resp = error?.response || error?.cause?.response;
+      if (resp && typeof resp.status === 'number') {
+        let body, bodyText;
+        if (typeof resp.clone === 'function') {
+          try { body = await resp.clone().json(); } catch { bodyText = await resp.clone().text(); }
+        } else if (error?.response?.data) {
+          body = error.response.data;
+        }
+        const msgs = [];
+        const detail = body?.detail;
+        if (Array.isArray(detail)) {
+          for (const d of detail) {
+            const loc = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
+            msgs.push(`${loc || 'param'}: ${d.msg || d.message || 'invalid'}`);
+          }
+        }
+        const fallback = body?.message || bodyText || `${resp.status} ${resp.statusText || ''}`;
+        info.reason = msgs.length ? msgs.join('; ') : fallback;
+        return info;
+      }
+      return null;
+    } catch {
+      return null;
     }
   }
 
