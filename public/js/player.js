@@ -8,6 +8,10 @@ class HalloweenPhotobooth {
         this.statusIndicator = document.getElementById('status-indicator');
         this.statusText = document.getElementById('status-text');
 
+        // Error handling
+        this.consecutiveErrors = 0;
+        this.maxConsecutiveErrors = 3;
+
         // Gallery elements
         this.videoGallery = document.getElementById('video-gallery');
         this.galleryGrid = document.getElementById('gallery-grid');
@@ -42,19 +46,13 @@ class HalloweenPhotobooth {
         this.settingsPanel = document.getElementById('settings-panel');
         this.settingsBtn = document.getElementById('settings-btn');
         this.settingsClose = document.getElementById('settings-close');
-        this.videoModelSelect = document.getElementById('video-model-select');
         this.modelInfo = document.getElementById('model-info');
         this.saveSettingsBtn = document.getElementById('save-settings-btn');
 
         // Simplified settings controls
+        this.videoResolutionSelect = document.getElementById('video-resolution-select');
         this.videoDurationSelect = document.getElementById('video-duration-select');
-        this.imageVariationsSlider = document.getElementById('image-variations');
-        this.variationsValue = document.getElementById('variations-value');
-
-        // Legacy Kling options (kept for backward compatibility)
-        this.klingOptions = document.getElementById('kling-options');
-        this.klingDurationSelect = document.getElementById('kling-duration-select');
-        this.klingAspectSelect = document.getElementById('kling-aspect-select');
+        this.seedreamImageSizeSelect = document.getElementById('seedream-image-size-select');
 
         // Other controls
         this.fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -115,18 +113,6 @@ class HalloweenPhotobooth {
         // Settings events
         this.settingsBtn.addEventListener('click', () => this.showSettings());
         this.settingsClose.addEventListener('click', () => this.hideSettings());
-        this.videoModelSelect.addEventListener('change', (e) => {
-            this.updateModelInfo(e.target.value);
-            this.toggleKlingOptions(e.target.value);
-        });
-
-        // Simplified settings: Duration and Image Variations
-        if (this.imageVariationsSlider && this.variationsValue) {
-            this.imageVariationsSlider.addEventListener('input', (e) => {
-                this.variationsValue.textContent = e.target.value;
-            });
-        }
-
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
 
         // Fullscreen event
@@ -193,10 +179,22 @@ class HalloweenPhotobooth {
 
             console.log(`Total videos: ${this.allVideos.length}, Active in queue: ${this.videoQueue.length}`);
 
-            if (this.videoQueue.length > 0 && (this.video.paused || !this.video.src)) {
-                // Start from the beginning of the playlist
-                this.currentVideoIndex = 0;
-                this.playNextVideo();
+            if (this.videoQueue.length > 0) {
+                // Hide empty state if showing
+                this.hideEmptyState();
+
+                if (this.video.paused || !this.video.src) {
+                    // Start from the beginning of the playlist
+                    this.currentVideoIndex = 0;
+                    this.playNextVideo();
+                }
+            } else if (this.screensaverVideos.length === 0 && this.allVideos.length === 0) {
+                // Show empty state if no videos at all
+                this.hideLoading();
+                this.showEmptyState();
+            } else if (this.videoQueue.length === 0 && this.screensaverVideos.length > 0) {
+                // Play screensaver if queue empty but screensaver videos exist
+                this.playScreensaver();
             }
         } catch (error) {
             console.error('Failed to load output videos:', error);
@@ -237,6 +235,17 @@ class HalloweenPhotobooth {
 
         this.video.addEventListener('error', (e) => {
             console.error('Video error:', e);
+            this.consecutiveErrors++;
+
+            if (this.consecutiveErrors >= this.maxConsecutiveErrors) {
+                console.error(`❌ ${this.consecutiveErrors} consecutive video errors. Stopping playback.`);
+                this.hideLoading();
+                this.showEmptyState();
+                this.consecutiveErrors = 0;
+                return;
+            }
+
+            console.log(`⚠️ Video error (${this.consecutiveErrors}/${this.maxConsecutiveErrors}), trying next video...`);
             this.playNextVideo();
         });
 
@@ -312,17 +321,43 @@ class HalloweenPhotobooth {
     }
     
     playScreensaver() {
-        if (this.screensaverVideos.length === 0) return;
-        
+        if (this.screensaverVideos.length === 0) {
+            console.log('⚠️ No screensaver videos available');
+            this.hideLoading();
+            this.showEmptyState();
+            return;
+        }
+
         this.isPlayingScreensaver = true;
         const randomIndex = Math.floor(Math.random() * this.screensaverVideos.length);
         const video = this.screensaverVideos[randomIndex];
         this.playVideo(video);
         this.updateStatus('Screensaver Mode');
     }
+
+    showEmptyState() {
+        // Hide video and show empty state message
+        this.video.style.display = 'none';
+        this.loading.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <p style="font-size: 48px; margin-bottom: 20px;">🎃</p>
+                <p style="font-size: 24px; margin-bottom: 10px; color: #ff6b35;">No Videos Yet</p>
+                <p style="font-size: 16px; color: #999;">Drop photos in the input folder to generate spooky videos!</p>
+            </div>
+        `;
+        this.loading.classList.remove('hidden');
+    }
+
+    hideEmptyState() {
+        this.video.style.display = 'block';
+        this.loading.innerHTML = `<div class="spinner"></div><p>Generating spooky magic...</p>`;
+    }
     
     async playVideo(videoData) {
         try {
+            // Ensure video element is visible
+            this.hideEmptyState();
+
             const videoUrl = `/api/video/${videoData.id}`;
 
             // If there's a current video playing, start GlitchMemories transition
@@ -339,6 +374,9 @@ class HalloweenPhotobooth {
             this.video.src = videoUrl;
             await this.video.play();
 
+            // Reset error counter on successful playback
+            this.consecutiveErrors = 0;
+
             // Track current playing video for playlist display
             this.currentPlayingIndex = this.videoQueue.findIndex(v => v.id === videoData.id);
             this.updatePlaylist();
@@ -350,7 +388,25 @@ class HalloweenPhotobooth {
             console.log('🎬 Now playing:', videoData.name);
         } catch (error) {
             console.error('Failed to play video:', error);
-            this.playNextVideo();
+            this.consecutiveErrors++;
+
+            // Stop if too many errors
+            if (this.consecutiveErrors >= this.maxConsecutiveErrors) {
+                console.error(`❌ ${this.consecutiveErrors} consecutive playback failures. Stopping.`);
+                this.hideLoading();
+                this.showEmptyState();
+                this.consecutiveErrors = 0;
+                return;
+            }
+
+            // Avoid infinite loop if there are no videos
+            if (this.videoQueue.length > 0 || this.screensaverVideos.length > 0) {
+                console.log(`⚠️ Playback error (${this.consecutiveErrors}/${this.maxConsecutiveErrors}), trying next video...`);
+                setTimeout(() => this.playNextVideo(), 1000); // Small delay before retry
+            } else {
+                this.hideLoading();
+                this.showEmptyState();
+            }
         }
     }
 
@@ -762,42 +818,138 @@ class HalloweenPhotobooth {
             const stats = await statsResponse.json();
             const status = await statusResponse.json();
 
-            // Get processed files count from status
+            // Intelligent data processing
             const processedCount = status.fileWatcher?.processedCount || 0;
+            const isRunning = status.status === 'running';
+            const fileWatcherActive = status.fileWatcher?.isRunning || false;
+
+            // Format memory usage
+            const memoryMB = stats.memory ? Math.round(stats.memory.heapUsed / 1024 / 1024) : 0;
+            const memoryTotal = stats.memory ? Math.round(stats.memory.heapTotal / 1024 / 1024) : 0;
+
+            // Color coding based on status
+            const statusColor = isRunning ? 'text-green-500' : 'text-red-500';
+            const watcherColor = fileWatcherActive ? 'text-green-500' : 'text-yellow-500';
+            const modeColor = this.isPlayingScreensaver ? 'text-purple-500' : 'text-halloween-orange';
+
+            // Queue health indicator
+            const queueHealth = this.videoQueue.length > 0 ? 'text-green-500' : 'text-yellow-500';
+            const queueText = this.videoQueue.length > 0 ? `${this.videoQueue.length} active` : 'Empty';
 
             this.statsContent.innerHTML = `
-                <div class="stats-item">
-                    <h4>Total Videos</h4>
-                    <p>${this.allVideos.length} videos</p>
+                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
+                    <div class="text-xs text-gray-400 mb-1">Total Videos</div>
+                    <div class="text-lg font-semibold text-white">${this.allVideos.length}</div>
+                    <div class="text-xs text-gray-500 mt-1">${this.disabledVideos.size} disabled</div>
                 </div>
-                <div class="stats-item">
-                    <h4>Queue Status</h4>
-                    <p>${this.videoQueue.length} videos in queue</p>
+                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
+                    <div class="text-xs text-gray-400 mb-1">Queue Status</div>
+                    <div class="text-lg font-semibold ${queueHealth}">${queueText}</div>
+                    <div class="text-xs text-gray-500 mt-1">${this.allVideos.length} total</div>
                 </div>
-                <div class="stats-item">
-                    <h4>Current Mode</h4>
-                    <p>${this.isPlayingScreensaver ? 'Screensaver' : 'Playing Queue'}</p>
+                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
+                    <div class="text-xs text-gray-400 mb-1">Current Mode</div>
+                    <div class="text-lg font-semibold ${modeColor}">${this.isPlayingScreensaver ? '🌙 Screensaver' : '▶️ Playing'}</div>
+                    <div class="text-xs text-gray-500 mt-1">${this.videoQueue.length > 0 ? `${this.currentVideoIndex + 1}/${this.videoQueue.length}` : '0/0'}</div>
                 </div>
-                <div class="stats-item">
-                    <h4>Processed Files</h4>
-                    <p>${processedCount} files processed</p>
+                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
+                    <div class="text-xs text-gray-400 mb-1">Processed Files</div>
+                    <div class="text-lg font-semibold text-white">${processedCount}</div>
+                    <div class="text-xs text-gray-500 mt-1">from input folder</div>
                 </div>
-                <div class="stats-item">
-                    <h4>System Status</h4>
-                    <p>${stats.status || 'Running'}</p>
+                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
+                    <div class="text-xs text-gray-400 mb-1">System Status</div>
+                    <div class="text-lg font-semibold ${statusColor}">${isRunning ? '✓ Running' : '✗ Stopped'}</div>
+                    <div class="text-xs ${watcherColor} mt-1">${fileWatcherActive ? '👁️ Watching files' : '⚠️ Watcher inactive'}</div>
                 </div>
-                <div class="stats-item">
-                    <h4>Uptime</h4>
-                    <p>${stats.uptime || 'Unknown'}</p>
+                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
+                    <div class="text-xs text-gray-400 mb-1">Uptime</div>
+                    <div class="text-lg font-semibold text-white">${stats.uptime || 'Unknown'}</div>
+                    <div class="text-xs text-gray-500 mt-1">${memoryMB}MB / ${memoryTotal}MB</div>
                 </div>
             `;
+
+            // Load input folder status
+            await this.loadInputFolderStatus();
+
         } catch (error) {
+            console.error('Failed to load system stats:', error);
             this.statsContent.innerHTML = `
-                <div class="stats-item">
-                    <h4>System Status</h4>
-                    <p>Error loading stats</p>
+                <div class="bg-gray-700/50 rounded p-3 col-span-2 text-center">
+                    <div class="text-xs text-gray-400 mb-2">System Status</div>
+                    <div class="text-lg font-semibold text-red-500">⚠️ Error Loading Stats</div>
+                    <div class="text-xs text-gray-500 mt-2">Check console for details</div>
                 </div>
             `;
+        }
+    }
+
+    async loadInputFolderStatus() {
+        try {
+            const response = await fetch('/api/input-status');
+            const data = await response.json();
+
+            const inputFolderStats = document.getElementById('input-folder-stats');
+            const inputFileList = document.getElementById('input-file-list');
+
+            // Display summary
+            const pending = data.statusCounts.pending || 0;
+            const processing = data.statusCounts.processing || 0;
+            const completed = data.statusCounts.completed || 0;
+
+            inputFolderStats.innerHTML = `
+                <div class="flex gap-4 text-xs">
+                    <span><strong>Total:</strong> ${data.totalFiles}</span>
+                    <span class="text-green-500"><strong>✓</strong> ${completed}</span>
+                    <span class="text-yellow-500"><strong>⏳</strong> ${processing}</span>
+                    <span class="text-gray-400"><strong>○</strong> ${pending}</span>
+                </div>
+            `;
+
+            // Display file list
+            if (data.files.length === 0) {
+                inputFileList.innerHTML = `
+                    <div class="text-center text-gray-500 py-4">
+                        No images in input folder
+                    </div>
+                `;
+            } else {
+                inputFileList.innerHTML = data.files.map(file => {
+                    const statusIcon = file.status === 'completed' ? '✓' :
+                                     file.status === 'processing' ? '⏳' : '○';
+                    const statusColor = file.status === 'completed' ? 'text-green-500' :
+                                       file.status === 'processing' ? 'text-yellow-500' : 'text-gray-400';
+                    const statusLabel = file.status === 'completed' ? 'Completed' :
+                                       file.status === 'processing' ? 'Processing' : 'Pending';
+                    const pillColor = file.status === 'completed' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
+                                     file.status === 'processing' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-gray-400 border-gray-500/30 bg-gray-500/10';
+
+                    const processedTime = file.processedAt ?
+                        new Date(file.processedAt).toLocaleString() : '-';
+
+                    return `
+                        <div class="bg-gray-700/30 rounded p-2 text-xs hover:bg-gray-700/50 transition-colors">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="${statusColor} font-bold">${statusIcon}</span>
+                                    <span class="truncate text-white">${file.filename}</span>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="px-2 py-0.5 rounded-full border ${pillColor}">${statusLabel}</span>
+                                    <span class="text-gray-500">${file.sizeFormatted}</span>
+                                </div>
+                            </div>
+                            ${file.status === 'completed' ? `
+                                <div class="text-gray-500 mt-1 text-xs ml-6">
+                                    Processed: ${processedTime}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch (error) {
+            console.error('Failed to load input folder status:', error);
         }
     }
 
@@ -921,8 +1073,16 @@ class HalloweenPhotobooth {
             const result = await response.json();
 
             if (response.ok) {
-                this.updateStatus('Input processing reset successfully');
-                // Refresh admin panel to show updated stats
+                this.updateStatus('Input processing reset - monitoring progress...');
+                // Start polling to show real-time updates
+                if (this.resetPollingInterval) {
+                    clearInterval(this.resetPollingInterval);
+                }
+                this.resetPollingInterval = setInterval(async () => {
+                    await this.populateSystemStats();
+                }, 2000); // Poll every 2 seconds
+
+                // Refresh immediately
                 await this.populateSystemStats();
             } else {
                 this.updateStatus('Failed to reset input processing');
@@ -943,10 +1103,28 @@ class HalloweenPhotobooth {
         this.settingsPanel.classList.remove('hidden');
         await this.loadSettings();
         await this.populateSystemStats();
+
+        // Auto-refresh stats every 5 seconds while settings panel is open
+        if (this.statsRefreshInterval) {
+            clearInterval(this.statsRefreshInterval);
+        }
+        this.statsRefreshInterval = setInterval(async () => {
+            if (!this.settingsPanel.classList.contains('hidden')) {
+                await this.populateSystemStats();
+            } else {
+                clearInterval(this.statsRefreshInterval);
+                this.statsRefreshInterval = null;
+            }
+        }, 5000);
     }
 
     hideSettings() {
         this.settingsPanel.classList.add('hidden');
+        // Clear stats refresh interval when closing
+        if (this.statsRefreshInterval) {
+            clearInterval(this.statsRefreshInterval);
+            this.statsRefreshInterval = null;
+        }
     }
 
     async loadSettings() {
@@ -954,70 +1132,24 @@ class HalloweenPhotobooth {
             const response = await fetch('/api/settings');
             const settings = await response.json();
 
-            if (settings.videoModel) {
-                this.videoModelSelect.value = settings.videoModel;
-                this.updateModelInfo(settings.videoModel);
-                this.toggleKlingOptions(settings.videoModel);
+            // Load simplified settings
+            if (settings.resolution && this.videoResolutionSelect) {
+                this.videoResolutionSelect.value = settings.resolution;
             }
 
-            // Load simplified settings
             if (settings.duration && this.videoDurationSelect) {
                 this.videoDurationSelect.value = String(settings.duration);
             }
 
-            if (settings.imageVariations && this.imageVariationsSlider && this.variationsValue) {
-                this.imageVariationsSlider.value = settings.imageVariations;
-                this.variationsValue.textContent = settings.imageVariations;
-            }
-
-            // Legacy Kling options (backward compatibility)
-            if (settings.kling) {
-                const { duration, aspectRatio } = settings.kling;
-                if (duration && this.klingDurationSelect) this.klingDurationSelect.value = String(duration);
-                if (aspectRatio && this.klingAspectSelect) this.klingAspectSelect.value = aspectRatio;
+            if (settings.seedreamImageSize && this.seedreamImageSizeSelect) {
+                this.seedreamImageSizeSelect.value = settings.seedreamImageSize;
             }
         } catch (error) {
             console.error('Failed to load settings:', error);
         }
     }
 
-    updateModelInfo(modelId) {
-        const modelDescriptions = {
-            'wan-2.2-turbo': {
-                name: 'WAN 2.2 Turbo',
-                type: 'Image-to-Video',
-                description: 'Fast image-to-video generation with good quality. Current default model.',
-                features: ['16:9 aspect ratio', '720p resolution', 'Quick generation']
-            },
-            'wan-2.5-preview': {
-                name: 'WAN 2.5 Preview',
-                type: 'Image-to-Video',
-                description: 'Latest WAN model with improved motion and quality.',
-                features: ['Multiple resolutions (480p-1080p)', '5-10 second duration', 'Enhanced motion generation']
-            },
-            'kling-v2.5-turbo': {
-                name: 'Kling Video v2.5 Turbo Pro',
-                type: 'Image-to-Video',
-                description: 'Image-conditioned video generation using Kling 2.5 Turbo Pro.',
-                features: ['5-10 second videos', 'Multiple aspect ratios', 'Uses source image as reference']
-            }
-        };
-
-        const model = modelDescriptions[modelId];
-        if (model) {
-            this.modelInfo.innerHTML = `
-                <h4>${model.name}</h4>
-                <p class="model-type"><strong>Type:</strong> ${model.type}</p>
-                <p class="model-description">${model.description}</p>
-                <div class="model-features">
-                    <strong>Features:</strong>
-                    <ul>
-                        ${model.features.map(f => `<li>${f}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-        }
-    }
+    // Removed updateModelInfo - no longer needed with fixed model
 
     async saveSettings() {
         try {
@@ -1025,25 +1157,10 @@ class HalloweenPhotobooth {
             this.saveSettingsBtn.textContent = 'Saving...';
 
             const settings = {
-                videoModel: this.videoModelSelect.value
+                resolution: this.videoResolutionSelect.value,
+                duration: this.videoDurationSelect.value,
+                seedreamImageSize: this.seedreamImageSizeSelect.value
             };
-
-            // Add simplified settings
-            if (this.videoDurationSelect) {
-                settings.duration = this.videoDurationSelect.value;
-            }
-
-            if (this.imageVariationsSlider) {
-                settings.imageVariations = parseInt(this.imageVariationsSlider.value, 10);
-            }
-
-            // Legacy Kling options (backward compatibility)
-            if (this.klingDurationSelect && this.klingAspectSelect) {
-                settings.kling = {
-                    duration: parseInt(this.klingDurationSelect.value, 10),
-                    aspectRatio: this.klingAspectSelect.value
-                };
-            }
 
             const response = await fetch('/api/settings', {
                 method: 'POST',
@@ -1065,14 +1182,6 @@ class HalloweenPhotobooth {
         } finally {
             this.saveSettingsBtn.disabled = false;
             this.saveSettingsBtn.textContent = 'Save Settings';
-        }
-    }
-
-    toggleKlingOptions(modelId) {
-        if (modelId === 'kling-v2.5-turbo') {
-            this.klingOptions.style.display = 'block';
-        } else {
-            this.klingOptions.style.display = 'none';
         }
     }
 }

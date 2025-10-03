@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import { LocalStorageService } from './services/localStorageService.js';
@@ -111,7 +112,10 @@ app.get('/api/video/:fileName', async (req, res) => {
 
     videoStream.pipe(res);
   } catch (error) {
-    console.error('Error streaming video:', error);
+    // Silently return 404 for missing videos (frontend may have stale metadata)
+    if (!error.message.includes('Video not found')) {
+      console.error('Error streaming video:', error);
+    }
     res.status(404).json({ error: 'Video not found' });
   }
 });
@@ -247,11 +251,6 @@ app.post('/api/settings', async (req, res) => {
     const success = await services.settings.save(newSettings);
 
     if (success) {
-      // Update video model if changed
-      if (newSettings.videoModel) {
-        await services.videoGeneration.setModel(newSettings.videoModel);
-      }
-
       res.json({
         success: true,
         message: 'Settings updated successfully',
@@ -266,58 +265,142 @@ app.post('/api/settings', async (req, res) => {
   }
 });
 
-// Update specific model settings
-app.post('/api/settings/:model', async (req, res) => {
+// Update resolution
+app.post('/api/settings/resolution', async (req, res) => {
   try {
-    const { model } = req.params;
-    const modelSettings = req.body;
+    const { resolution } = req.body;
 
-    const validModels = ['wan-2.2-turbo', 'wan-2.5-preview', 'kling-v2.5-turbo', 'seedream'];
-    if (!validModels.includes(model)) {
-      return res.status(400).json({ error: `Invalid model: ${model}` });
+    if (!resolution) {
+      return res.status(400).json({ error: 'resolution is required' });
     }
 
-    const success = await services.settings.updateModelSettings(model, modelSettings);
+    const success = await services.settings.setResolution(resolution);
 
     if (success) {
       res.json({
         success: true,
-        message: `Settings for ${model} updated successfully`,
-        settings: services.settings.getModelSettings(model)
+        message: `Resolution changed to ${resolution}`,
+        settings: services.settings.getSettings()
       });
     } else {
-      res.status(500).json({ error: `Failed to update settings for ${model}` });
+      res.status(400).json({ error: `Invalid resolution: ${resolution}` });
     }
   } catch (error) {
-    console.error(`Error updating model settings:`, error);
-    res.status(500).json({ error: 'Failed to update model settings' });
+    console.error('Error changing resolution:', error);
+    res.status(500).json({ error: 'Failed to change resolution' });
   }
 });
 
-// Update video model selection
-app.post('/api/settings/video-model', async (req, res) => {
+// Update duration
+app.post('/api/settings/duration', async (req, res) => {
   try {
-    const { model } = req.body;
+    const { duration } = req.body;
 
-    if (!model) {
-      return res.status(400).json({ error: 'model is required' });
+    if (!duration) {
+      return res.status(400).json({ error: 'duration is required' });
     }
 
-    const success = await services.settings.setVideoModel(model);
+    const success = await services.settings.setDuration(duration);
 
     if (success) {
-      await services.videoGeneration.setModel(model);
       res.json({
         success: true,
-        message: `Video model changed to ${model}`,
-        currentModel: model
+        message: `Duration changed to ${duration} seconds`,
+        settings: services.settings.getSettings()
       });
     } else {
-      res.status(400).json({ error: `Invalid model: ${model}` });
+      res.status(400).json({ error: `Invalid duration: ${duration}` });
     }
   } catch (error) {
-    console.error('Error changing video model:', error);
-    res.status(500).json({ error: 'Failed to change video model' });
+    console.error('Error changing duration:', error);
+    res.status(500).json({ error: 'Failed to change duration' });
+  }
+});
+
+// Update seedream image size
+app.post('/api/settings/seedream-image-size', async (req, res) => {
+  try {
+    const { size } = req.body;
+
+    if (!size) {
+      return res.status(400).json({ error: 'size is required' });
+    }
+
+    const success = await services.settings.setSeedreamImageSize(size);
+
+    if (success) {
+      res.json({
+        success: true,
+        message: `Seedream image size changed to ${size}`,
+        settings: services.settings.getSettings()
+      });
+    } else {
+      res.status(400).json({ error: `Invalid seedream image size: ${size}` });
+    }
+  } catch (error) {
+    console.error('Error changing seedream image size:', error);
+    res.status(500).json({ error: 'Failed to change seedream image size' });
+  }
+});
+
+// Get input folder status and file processing info
+app.get('/api/input-status', async (req, res) => {
+  try {
+    const inputPath = './input';
+
+    // Get all files in input folder
+    const files = fs.readdirSync(inputPath)
+      .filter(f => /\.(jpg|jpeg|png)$/i.test(f))
+      .map(filename => {
+        const filePath = path.join(inputPath, filename);
+        const stats = fs.statSync(filePath);
+
+        // Check status from processed file tracker
+        let status = 'pending';
+        let processedAt = null;
+
+        // Use the active file tracker from the watcher
+        const tracker = services.fileWatcher?.fileTracker || services.fileWatcher?.processedFileTracker;
+        if (tracker) {
+          if (tracker.isFileCurrentlyProcessing(filePath, filename)) {
+            status = 'processing';
+          } else if (tracker.isFileProcessed(filePath, filename)) {
+            status = 'completed';
+            // Get the processed time
+            const record = Array.from(tracker.processedFiles.values())
+              .find(r => r.fileName === filename);
+            if (record) {
+              processedAt = record.processedAt;
+            }
+          }
+        }
+
+        return {
+          filename,
+          size: stats.size,
+          sizeFormatted: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
+          created: stats.birthtime,
+          modified: stats.mtime,
+          status,
+          processedAt
+        };
+      })
+      .sort((a, b) => b.modified - a.modified);
+
+    const statusCounts = files.reduce((acc, f) => {
+      acc[f.status] = (acc[f.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      inputFolder: inputPath,
+      totalFiles: files.length,
+      statusCounts,
+      files
+    });
+  } catch (error) {
+    console.error('Error fetching input status:', error);
+    res.status(500).json({ error: 'Failed to fetch input status' });
   }
 });
 
