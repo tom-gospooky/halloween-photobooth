@@ -122,6 +122,7 @@ export class VideoGenerationService {
       } else {
         const err = new Error(result.error || 'WAN error');
         if (result.code) err.code = result.code;
+        if (result.details) err.details = result.details;
         throw err;
       }
 
@@ -135,6 +136,13 @@ export class VideoGenerationService {
       }
       if (options.logger) {
         options.logger.error(`WAN failed: ${error.message}`);
+        if (error.details) {
+          const d = error.details;
+          const reason = Array.isArray(d.validation) && d.validation.length
+            ? d.validation.join('; ')
+            : (d.body?.message || d.bodyText || `${d.status || ''} ${d.statusText || ''}`).toString().slice(0, 200);
+          if (reason.trim()) options.logger.warn(`Details: ${reason}`);
+        }
         options.logger.warn('Falling back to placeholder');
       }
       return await this.createPlaceholderVideo(imagePath, originalFileName, geminiOutputText, options?.outputDir);

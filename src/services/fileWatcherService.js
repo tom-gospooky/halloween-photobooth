@@ -295,6 +295,13 @@ export class FileWatcherService {
 
     } catch (error) {
       log.error(`Failed: ${error.message}`);
+      if (error?.details) {
+        const d = error.details;
+        const reason = Array.isArray(d.validation) && d.validation.length
+          ? d.validation.join('; ')
+          : (d.body?.message || d.bodyText || `${d.status || ''} ${d.statusText || ''}`).toString().slice(0, 200);
+        if (reason.trim()) log.warn(`Details: ${reason}`);
+      }
 
       // Special handling: if WAN reported Unprocessable Entity, reset this image only
       if (error?.code === 'UNPROCESSABLE_ENTITY' || /Unprocessable/i.test(error?.message || '')) {

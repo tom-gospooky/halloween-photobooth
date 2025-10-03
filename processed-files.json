@@ -65,11 +65,11 @@
     "fileHash": "9cd142d9535ef5d2b309522cbe07560e953f7b613712a079adef8d4574f2b8e6",
     "fileSize": 1801756,
     "fileModified": "2024-10-29T04:14:52.000Z",
-    "processedAt": "2025-10-03T19:33:28.297Z",
-    "videoOutput": null,
-    "status": "processing",
-    "stage": "video",
-    "stageAt": "2025-10-03T19:34:00.725Z"
+    "processedAt": "2025-10-03T19:36:18.046Z",
+    "videoOutput": "./output/1759520178036_P1466307_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T19:36:18.046Z"
   },
   "03a2700ad88675f6bdc66f4f0ea6a91e4e1f14850b381e55274f25badd713374": {
     "fileName": "P1466297.jpg",
@@ -77,11 +77,11 @@
     "fileHash": "03a2700ad88675f6bdc66f4f0ea6a91e4e1f14850b381e55274f25badd713374",
     "fileSize": 1315686,
     "fileModified": "2024-10-29T04:14:46.000Z",
-    "processedAt": "2025-10-03T19:35:28.295Z",
-    "videoOutput": null,
-    "status": "processing",
-    "stage": "image_edit",
-    "stageAt": "2025-10-03T19:35:34.961Z"
+    "processedAt": "2025-10-03T19:38:43.493Z",
+    "videoOutput": "./output/1759520323481_P1466297_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T19:38:43.493Z"
   },
   "952afd5a8a74cbe69afe420a89b84b1558697066d793dc6a6ebb2d40440fc6e6": {
     "fileName": "CIMG6332.jpg",
@@ -89,10 +89,34 @@
     "fileHash": "952afd5a8a74cbe69afe420a89b84b1558697066d793dc6a6ebb2d40440fc6e6",
     "fileSize": 1415641,
     "fileModified": "2024-10-28T00:22:04.000Z",
-    "processedAt": "2025-10-03T19:35:43.299Z",
+    "processedAt": "2025-10-03T19:38:33.024Z",
+    "videoOutput": "./output/1759520313013_CIMG6332_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T19:38:33.024Z"
+  },
+  "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753": {
+    "fileName": "CIMG6283.jpg",
+    "filePath": "input/CIMG6283.jpg",
+    "fileHash": "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753",
+    "fileSize": 1354759,
+    "fileModified": "2024-10-28T00:21:52.000Z",
+    "processedAt": "2025-10-03T19:37:16.906Z",
     "videoOutput": null,
-    "status": "processing",
-    "stage": "image_edit",
-    "stageAt": "2025-10-03T19:35:49.678Z"
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T19:37:16.906Z"
+  },
+  "4980e74b350023e36d4fb85dc2785efe03eca42ec40fa138c2b2d9680e5c9c0d": {
+    "fileName": "CIMG6281.jpg",
+    "filePath": "input/CIMG6281.jpg",
+    "fileHash": "4980e74b350023e36d4fb85dc2785efe03eca42ec40fa138c2b2d9680e5c9c0d",
+    "fileSize": 1451305,
+    "fileModified": "2024-10-28T00:21:50.000Z",
+    "processedAt": "2025-10-03T19:40:08.770Z",
+    "videoOutput": null,
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-03T19:40:08.770Z"
   }
 }

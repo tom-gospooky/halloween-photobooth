@@ -93,7 +93,7 @@ export class FalWan25Service {
         duration: parseInt(duration),
         negative_prompt: this.negativePrompt, // Load from negative.md
         enable_safety_checker: false, // Allow horror content
-        enable_prompt_expansion: true  // Use LLM enhancement
+        enable_prompt_expansion: false  // Use LLM enhancement
       };
 
       //
@@ -126,14 +126,15 @@ export class FalWan25Service {
       }
 
     } catch (error) {
-      console.error('❌ WAN 2.5 Preview generation failed:', error.message);
-      let code = 'UNKNOWN';
-      const msg = String(error.message || '').toLowerCase();
-      if (msg.includes('unprocessable')) code = 'UNPROCESSABLE_ENTITY';
+      // Try to extract structured error info from FAL response
+      const details = await this.parseFalError(error);
+      const code = details.code || 'UNKNOWN';
+      console.error('❌ WAN 2.5 Preview generation failed:', details.message || error.message);
       return {
         success: false,
-        error: error.message,
+        error: details.message || error.message,
         code,
+        details,
         model: 'wan-2.5-preview'
       };
     }
@@ -284,5 +285,66 @@ export class FalWan25Service {
 
       return { success: false, error: error.message, type: errorType };
     }
+  }
+
+  async parseFalError(error) {
+    const info = {
+      message: error?.message || 'Unknown error',
+      code: 'UNKNOWN'
+    };
+
+    // Check for a fetch/Response-like object
+    const resp = error?.response || error?.cause?.response;
+    try {
+      if (resp && typeof resp.status === 'number') {
+        info.status = resp.status;
+        info.statusText = resp.statusText;
+        const ct = resp.headers?.get ? resp.headers.get('content-type') || '' : '';
+        if (typeof resp.clone === 'function') {
+          if (ct.includes('application/json')) {
+            try {
+              info.body = await resp.clone().json();
+            } catch {
+              info.bodyText = await resp.clone().text();
+            }
+          } else {
+            info.bodyText = await resp.clone().text();
+          }
+        }
+      } else if (error?.response?.data) {
+        // Axios-like
+        info.body = error.response.data;
+        info.status = error.response.status;
+        info.statusText = error.response.statusText;
+      } else if (error?.data) {
+        info.body = error.data;
+      }
+    } catch {
+      // ignore parse failures
+    }
+
+    // Extract validation messages
+    const detail = info.body?.detail;
+    if (Array.isArray(detail)) {
+      info.validation = detail.map(d => {
+        const loc = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
+        return `${loc || 'param'}: ${d.msg || d.message || 'invalid'}`;
+      });
+    }
+    if (!info.message) {
+      info.message = info.body?.message || info.statusText || 'Unknown error';
+    }
+
+    // Map to a simple code
+    if (info.status === 422 || /unprocessable/i.test(info.message || '')) {
+      info.code = 'UNPROCESSABLE_ENTITY';
+    } else if (info.status === 401 || info.status === 403) {
+      info.code = 'UNAUTHORIZED';
+    } else if (info.status === 429) {
+      info.code = 'RATE_LIMIT';
+    } else if (info.status === 413) {
+      info.code = 'PAYLOAD_TOO_LARGE';
+    }
+    return info;
   }
 }
