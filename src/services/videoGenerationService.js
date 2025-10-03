@@ -36,24 +36,24 @@ export class VideoGenerationService {
     };
 
     try {
-      console.log('🎬 Generating video with image editing workflow...');
+      // Stage logged by caller
 
       // Step 1: Edit the image using Seedream v4 Edit
       try { progress.onImageEditStart && progress.onImageEditStart(); } catch {}
-      console.log('🎨 Step 1: Editing image with Seedream v4 Edit (fal.ai)...');
+      //
       const imageEditStart = Date.now();
       const editedImagePath = await this.imageEditService.editImage(originalImagePath, imageEditPrompt, { logger: progress.logger });
       try { progress.onImageEditComplete && progress.onImageEditComplete(editedImagePath); } catch {}
       timing.imageEdit = (Date.now() - imageEditStart) / 1000;
-      console.log(`⏱️  Image editing completed in ${timing.imageEdit.toFixed(2)}s`);
+      //
 
       // Step 2: Generate video using edited image and Veo prompt
-      console.log('🎬 Step 2: Generating video with edited image...');
+      //
       try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
       const videoPath = await this.generateVideo(veoPrompt, editedImagePath, originalFileName, { logger: progress.logger });
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;
-      console.log(`⏱️  Video generation completed in ${timing.videoGeneration.toFixed(2)}s`);
+      //
       try { progress.onVideoComplete && progress.onVideoComplete(videoPath); } catch {}
 
       return {
@@ -63,8 +63,10 @@ export class VideoGenerationService {
       };
 
     } catch (error) {
-      console.log(`❌ Image editing workflow failed: ${error.message}`);
-      console.log('🔄 Falling back to original image workflow...');
+      if (progress?.logger) {
+        progress.logger.error(`Image editing workflow failed: ${error.message}`);
+        progress.logger.warn('Falling back to original image');
+      }
 
       // Fallback to original workflow without image editing
       try { progress.onVideoStart && progress.onVideoStart(); } catch {}
@@ -92,7 +94,6 @@ export class VideoGenerationService {
 
       // Dry-run short-circuit: create placeholder only, no network calls
       if (options?.dryRun) {
-        console.log('🧪 Dry run enabled — skipping API calls');
         return await this.createPlaceholderVideo(imagePath, originalFileName, geminiOutputText, options.outputDir);
       }
 
@@ -133,7 +134,7 @@ export class VideoGenerationService {
 
   async createPlaceholderVideo(imagePath, originalFileName, prompt, outputDir = null) {
     try {
-      console.log('🎨 Creating placeholder Halloween video...');
+      // Placeholder generation (no verbose log)
       
       // Create a simple placeholder video by combining the image with a spooky overlay
       // This is a fallback when WAN 2.2 Turbo API is not available
@@ -160,7 +161,7 @@ This would be replaced by the actual WAN 2.2 Turbo generated video.
       const imageBuffer = fs.readFileSync(imagePath);
       fs.writeFileSync(outputPath.replace('.mp4', '_placeholder.jpg'), imageBuffer);
       
-      console.log('⚠️  Created placeholder instead of actual video');
+      //
       return outputPath.replace('.mp4', '_placeholder.jpg');
       
     } catch (error) {

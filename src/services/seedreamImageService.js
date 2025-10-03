@@ -117,7 +117,6 @@ export class SeedreamImageService {
       //
 
       if (!url) {
-        console.error('❌ Full Seedream response:', JSON.stringify(result, null, 2));
         throw new Error('No image URL in Seedream response');
       }
 
