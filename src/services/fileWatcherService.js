@@ -1,6 +1,7 @@
 import { ProcessedFileTracker } from './processedFileTracker.js';
 import path from 'path';
 import { createImageLogger } from '../utils/logger.js';
+import { RunLogger } from '../utils/runLogger.js';
 
 export class FileWatcherService {
   constructor(localStorageService, photoAnalysisService, videoGenerationService) {
@@ -107,6 +108,11 @@ export class FileWatcherService {
     const overallStart = Date.now();
     const log = createImageLogger(file.path, file.name);
     log.stage('Start processing');
+    const runLogger = new RunLogger(file.path, file.name);
+    await runLogger.init();
+    runLogger.stage('start_processing');
+    // Attach runId to processed-files entry ASAP
+    await this.fileTracker.setProcessingStage(file.path, file.name, 'prompt', { runId: runLogger.runId });
 
     // Timing tracking object
     const timing = {
@@ -121,10 +127,12 @@ export class FileWatcherService {
     try {
       // Step 1: Generate dual prompts (Veo3 + image edit) with Gemini 2.5 Flash + master prompt
       log.stage('Prompt generation');
+      runLogger.stage('prompt_generation_start');
       const promptStart = Date.now();
-      const dualPrompts = await this.photoAnalysis.generateDualPrompts(file.path);
+      const dualPrompts = await this.photoAnalysis.generateDualPrompts(file.path, { apiLogger: runLogger });
       timing.promptGeneration = (Date.now() - promptStart) / 1000;
       log.info(`Prompt ready (${timing.promptGeneration.toFixed(2)}s)`);
+      runLogger.stage('prompt_generation_complete', { durationSec: timing.promptGeneration });
 
       // Step 2: Generate video with image editing workflow
       log.stage('Image editing + video generation');
@@ -136,21 +144,26 @@ export class FileWatcherService {
         file.name,
         {
           logger: log,
+          apiLogger: runLogger,
           onImageEditStart: async () => {
-            await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit', { runId: runLogger.runId });
             log.info('Image edit started');
+            runLogger.stage('image_edit_start');
           },
           onImageEditComplete: async () => {
-            await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit');
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'image_edit', { runId: runLogger.runId });
             log.info('Image edit complete');
+            runLogger.stage('image_edit_complete');
           },
           onVideoStart: async () => {
-            await this.fileTracker.setProcessingStage(file.path, file.name, 'video');
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'video', { runId: runLogger.runId });
             log.info('Video generation started');
+            runLogger.stage('video_generation_start');
           },
           onVideoComplete: async () => {
-            await this.fileTracker.setProcessingStage(file.path, file.name, 'video');
+            await this.fileTracker.setProcessingStage(file.path, file.name, 'video', { runId: runLogger.runId });
             log.info('Video generation complete');
+            runLogger.stage('video_generation_complete');
           }
         }
       );
@@ -168,6 +181,11 @@ export class FileWatcherService {
         timing.videoGeneration = workflowTime * 0.7; // Estimate
       }
       log.info(`Durations — edit: ${timing.imageEdit.toFixed(2)}s, video: ${timing.videoGeneration.toFixed(2)}s`);
+      runLogger.update({ timing: {
+        promptGeneration: parseFloat(timing.promptGeneration.toFixed(2)),
+        imageEdit: parseFloat(timing.imageEdit.toFixed(2)),
+        videoGeneration: parseFloat(timing.videoGeneration.toFixed(2))
+      }});
 
       // Calculate total timing
       timing.total = (Date.now() - overallStart) / 1000;
@@ -203,18 +221,24 @@ export class FileWatcherService {
           console.warn(`⚠️  Skipping output copy — ${isPlaceholder ? 'placeholder' : 'invalid'} file: ${videoPath}`);
         } else {
         log.stage('Saving outputs');
+        runLogger.stage('saving_outputs');
           videoFileName = `${timestamp}_${baseName}_halloween.mp4`;
 
           // Copy video to output folder
           await this.localStorage.copyFile(videoPath, videoFileName, 'output');
           finalVideoPath = `./output/${videoFileName}`;
         log.success('Video saved to output');
+        runLogger.update({ output: { video: path.basename(finalVideoPath) } });
 
           // Copy edited image to output folder if it exists and is different from original
           if (editedImagePath && editedImagePath !== file.path && fs.default.existsSync(editedImagePath)) {
             editedImageFileName = `${timestamp}_${baseName}_edited.jpg`;
             await this.localStorage.copyFile(editedImagePath, editedImageFileName, 'output');
           log.success('Edited image saved to output');
+          runLogger.update({ output: { 
+            ...(runLogger._read()?.output || {}),
+            editedImage: editedImageFileName 
+          }});
           }
 
         }
@@ -255,6 +279,10 @@ export class FileWatcherService {
             imageEditor: 'seedream',
             videoGenerator: 'wan-25-preview'
           },
+          logs: {
+            runDir: runLogger.runDir,
+            runFile: runLogger.runJsonPath
+          },
           status: finalVideoPath ? 'success' : (isPlaceholder ? 'placeholder' : 'failed')
         };
 
@@ -290,11 +318,19 @@ export class FileWatcherService {
       }
 
       // Step 4: Mark file as successfully processed (KEEP ORIGINAL IN INPUT FOLDER)
-      await this.fileTracker.markFileAsProcessed(file.path, file.name, finalVideoPath);
+      await this.fileTracker.markFileAsProcessed(file.path, file.name, finalVideoPath, { runId: runLogger.runId });
       log.success(`Completed in ${timing.total.toFixed(2)}s`);
+      runLogger.update({
+        processing: {
+          ...(runLogger._read()?.processing || {}),
+          total: parseFloat(timing.total.toFixed(2))
+        }
+      });
+      runLogger.finalize(finalVideoPath ? 'completed' : 'completed_no_video');
 
     } catch (error) {
       log.error(`Failed: ${error.message}`);
+      runLogger.finalize('failed', { error: { message: error?.message, code: error?.code } });
       if (error?.details) {
         const d = error.details;
         const reason = Array.isArray(d.validation) && d.validation.length
@@ -312,7 +348,7 @@ export class FileWatcherService {
       }
 
       // For other failures, mark as processed to avoid costly retries
-      await this.fileTracker.markFileAsProcessed(file.path, file.name, null);
+      await this.fileTracker.markFileAsProcessed(file.path, file.name, null, { runId: runLogger.runId });
       log.warn('Marked as processed to avoid retry loops');
     }
   }

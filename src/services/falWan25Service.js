@@ -98,7 +98,17 @@ export class FalWan25Service {
 
       //
 
+      // Log raw WAN request
+      let callId = null;
+      try {
+        if (options.apiLogger) {
+          callId = options.apiLogger.apiRequest('fal_wan', 'fal-ai/wan-25-preview/image-to-video', { input });
+        }
+      } catch {}
+
       const result = await fal.run("fal-ai/wan-25-preview/image-to-video", { input });
+
+      try { options.apiLogger && options.apiLogger.apiResponse(callId || 0, result); } catch {}
 
       //
 

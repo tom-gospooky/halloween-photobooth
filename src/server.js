@@ -310,22 +310,28 @@ app.post('/api/settings/duration', async (req, res) => {
 // Update seedream image size
 app.post('/api/settings/seedream-image-size', async (req, res) => {
   try {
-    const { size } = req.body;
+    // Accept either { size: 'enum' } or { size: { width, height } }
+    const { size, width, height } = req.body || {};
 
-    if (!size) {
-      return res.status(400).json({ error: 'size is required' });
+    let value = size;
+    if (typeof value === 'undefined' && typeof width !== 'undefined' && typeof height !== 'undefined') {
+      value = { width, height };
     }
 
-    const success = await services.settings.setSeedreamImageSize(size);
+    if (typeof value === 'undefined') {
+      return res.status(400).json({ error: 'size is required (enum string or {width,height})' });
+    }
+
+    const success = await services.settings.setSeedreamImageSize(value);
 
     if (success) {
       res.json({
         success: true,
-        message: `Seedream image size changed to ${size}`,
+        message: 'Seedream image size updated',
         settings: services.settings.getSettings()
       });
     } else {
-      res.status(400).json({ error: `Invalid seedream image size: ${size}` });
+      res.status(400).json({ error: 'Invalid seedream image size' });
     }
   } catch (error) {
     console.error('Error changing seedream image size:', error);

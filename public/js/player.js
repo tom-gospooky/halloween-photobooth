@@ -53,6 +53,9 @@ class HalloweenPhotobooth {
         this.videoResolutionSelect = document.getElementById('video-resolution-select');
         this.videoDurationSelect = document.getElementById('video-duration-select');
         this.seedreamImageSizeSelect = document.getElementById('seedream-image-size-select');
+        this.seedreamCustomSizeContainer = document.getElementById('seedream-custom-size');
+        this.seedreamCustomWidthInput = document.getElementById('seedream-custom-width');
+        this.seedreamCustomHeightInput = document.getElementById('seedream-custom-height');
         this.playbackRateInput = document.getElementById('playback-rate-input');
         this.playbackRateValue = document.getElementById('playback-rate-value');
         this.currentPlaybackRate = 1.0;
@@ -117,6 +120,9 @@ class HalloweenPhotobooth {
         this.settingsBtn.addEventListener('click', () => this.showSettings());
         this.settingsClose.addEventListener('click', () => this.hideSettings());
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+        if (this.seedreamImageSizeSelect) {
+            this.seedreamImageSizeSelect.addEventListener('change', () => this.updateSeedreamCustomVisibility());
+        }
         if (this.playbackRateInput) {
             this.playbackRateInput.addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
@@ -260,9 +266,7 @@ class HalloweenPhotobooth {
             this.playNextVideo();
         });
 
-        this.video.addEventListener('loadstart', () => {
-            this.showLoading();
-        });
+        
 
         this.video.addEventListener('canplay', () => {
             this.hideLoading();
@@ -1167,8 +1171,18 @@ class HalloweenPhotobooth {
                 this.videoDurationSelect.value = String(settings.duration);
             }
 
-            if (settings.seedreamImageSize && this.seedreamImageSizeSelect) {
-                this.seedreamImageSizeSelect.value = settings.seedreamImageSize;
+            if (typeof settings.seedreamImageSize !== 'undefined' && this.seedreamImageSizeSelect) {
+                const s = settings.seedreamImageSize;
+                if (s && typeof s === 'object') {
+                    this.seedreamImageSizeSelect.value = 'custom';
+                    if (this.seedreamCustomWidthInput) this.seedreamCustomWidthInput.value = String(s.width || '');
+                    if (this.seedreamCustomHeightInput) this.seedreamCustomHeightInput.value = String(s.height || '');
+                } else {
+                    this.seedreamImageSizeSelect.value = s;
+                    if (this.seedreamCustomWidthInput) this.seedreamCustomWidthInput.value = '';
+                    if (this.seedreamCustomHeightInput) this.seedreamCustomHeightInput.value = '';
+                }
+                this.updateSeedreamCustomVisibility();
             }
 
             if (typeof settings.playbackRate !== 'undefined' && this.playbackRateInput) {
@@ -1192,7 +1206,7 @@ class HalloweenPhotobooth {
             const settings = {
                 resolution: this.videoResolutionSelect.value,
                 duration: this.videoDurationSelect.value,
-                seedreamImageSize: this.seedreamImageSizeSelect.value,
+                seedreamImageSize: this.buildSeedreamImageSizeValue(),
                 playbackRate: this.playbackRateInput ? parseFloat(this.playbackRateInput.value) : this.currentPlaybackRate
             };
 
@@ -1221,6 +1235,37 @@ class HalloweenPhotobooth {
             this.saveSettingsBtn.disabled = false;
             this.saveSettingsBtn.textContent = 'Save Settings';
         }
+    }
+
+    updateSeedreamCustomVisibility() {
+        if (!this.seedreamImageSizeSelect || !this.seedreamCustomSizeContainer) return;
+        const isCustom = this.seedreamImageSizeSelect.value === 'custom';
+        if (isCustom) {
+            this.seedreamCustomSizeContainer.classList.remove('hidden');
+        } else {
+            this.seedreamCustomSizeContainer.classList.add('hidden');
+        }
+    }
+
+    buildSeedreamImageSizeValue() {
+        if (!this.seedreamImageSizeSelect) return 'auto';
+        if (this.seedreamImageSizeSelect.value !== 'custom') {
+            return this.seedreamImageSizeSelect.value;
+        }
+        const w = Number(this.seedreamCustomWidthInput?.value);
+        const h = Number(this.seedreamCustomHeightInput?.value);
+        if (!Number.isFinite(w) || !Number.isFinite(h)) {
+            this.updateStatus('Enter numeric width and height for custom size');
+            return 'auto';
+        }
+        const width = Math.round(w);
+        const height = Math.round(h);
+        // Allow 720–4096 to support 1280x720 HD
+        if (width < 720 || width > 4096 || height < 720 || height > 4096) {
+            this.updateStatus('Custom size must be 720–4096 for both dimensions');
+            return 'auto';
+        }
+        return { width, height };
     }
 
     applyPlaybackRate(rate) {

@@ -10,6 +10,7 @@
     "setup": "node scripts/setup-manual.js",
     "dry-run:fal": "node scripts/dry-run-fal-models.js",
     "validate:fal": "node scripts/run-fal-validation.js",
+    "runs:watch": "node scripts/run-dashboard.js",
     "test": "node test/test-workflow.js",
     "test:clean": "node test/test-workflow.js --cleanup",
     "test:single-use": "node test/test-single-use.js",

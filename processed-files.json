@@ -1,118 +1,83 @@
 {
-  "c52dcbf26bcb0587a2dab4a55e9cf86f4978d7669728db09b2da3991a062eda8": {
-    "fileName": "P1466584.jpg",
-    "filePath": "input/P1466584.jpg",
-    "fileHash": "c52dcbf26bcb0587a2dab4a55e9cf86f4978d7669728db09b2da3991a062eda8",
-    "fileSize": 1446672,
-    "fileModified": "2025-09-17T20:03:31.835Z",
-    "processedAt": "2025-10-03T20:25:53.382Z",
-    "videoOutput": null,
+  "2380ead08db7376f9a5bc4dac4c19b7aa11acabe110caa28890e54f25edf0f7b": {
+    "fileName": "16-9_01.jpg",
+    "filePath": "input/16-9_01.jpg",
+    "fileHash": "2380ead08db7376f9a5bc4dac4c19b7aa11acabe110caa28890e54f25edf0f7b",
+    "fileSize": 362615,
+    "fileModified": "2025-10-14T11:52:44.341Z",
+    "processedAt": "2025-10-14T13:03:54.261Z",
+    "videoOutput": "./output/1760447034247_16-9_01_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T20:25:53.382Z"
+    "stageAt": "2025-10-14T13:03:54.261Z",
+    "runId": "2025-10-14T13-00-54-594Z_16-9_01.jpg"
   },
-  "cb885a395efc2dc16c952e08c08076097b9d721f3c7532a7611af4c8633428cb": {
-    "fileName": "foto_1.jpg",
-    "filePath": "input/foto_1.jpg",
-    "fileHash": "cb885a395efc2dc16c952e08c08076097b9d721f3c7532a7611af4c8633428cb",
-    "fileSize": 1327536,
-    "fileModified": "2025-09-17T18:18:41.340Z",
-    "processedAt": "2025-10-03T19:50:47.291Z",
-    "videoOutput": "./output/1759521047283_foto_1_halloween.mp4",
+  "ae6eb4604b56b3c7697c9645ed5b3e7053e18120b7d05e6e5eb529f28f0577d3": {
+    "fileName": "Image_11.jpg",
+    "filePath": "input/Image_11.jpg",
+    "fileHash": "ae6eb4604b56b3c7697c9645ed5b3e7053e18120b7d05e6e5eb529f28f0577d3",
+    "fileSize": 181078,
+    "fileModified": "2025-10-04T21:05:02.975Z",
+    "processedAt": "2025-10-14T13:03:53.858Z",
+    "videoOutput": "./output/1760447033836_Image_11_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T19:50:47.291Z"
+    "stageAt": "2025-10-14T13:03:53.858Z",
+    "runId": "2025-10-14T13-00-54-599Z_Image_11.jpg"
   },
-  "6ef0af74a03b751468153e3c236bb9dc1a572809d1c391d062db3ef13fc36ea6": {
-    "fileName": "P1466603.jpg",
-    "filePath": "input/P1466603.jpg",
-    "fileHash": "6ef0af74a03b751468153e3c236bb9dc1a572809d1c391d062db3ef13fc36ea6",
-    "fileSize": 1087506,
-    "fileModified": "2024-10-29T04:16:44.000Z",
-    "processedAt": "2025-10-03T20:31:49.049Z",
-    "videoOutput": null,
+  "52b705805f6204b243322910a15e912d4620bd3891d450db5e3796dcdf4e94ec": {
+    "fileName": "Image_09.jpg",
+    "filePath": "input/Image_09.jpg",
+    "fileHash": "52b705805f6204b243322910a15e912d4620bd3891d450db5e3796dcdf4e94ec",
+    "fileSize": 185509,
+    "fileModified": "2025-10-04T21:05:01.838Z",
+    "processedAt": "2025-10-14T13:04:08.836Z",
+    "videoOutput": "./output/1760447048801_Image_09_halloween.mp4",
     "status": "completed",
     "stage": "completed",
-    "stageAt": "2025-10-03T20:31:49.049Z"
+    "stageAt": "2025-10-14T13:04:08.836Z",
+    "runId": "2025-10-14T13-00-54-603Z_Image_09.jpg"
   },
-  "dda29d200728b25f51268b66e11492983fdc448110166297bdf889111bf0e47d": {
-    "fileName": "P1466554.jpg",
-    "filePath": "input/P1466554.jpg",
-    "fileHash": "dda29d200728b25f51268b66e11492983fdc448110166297bdf889111bf0e47d",
-    "fileSize": 1015523,
-    "fileModified": "2024-10-29T04:16:28.000Z",
-    "processedAt": "2025-10-03T20:26:26.024Z",
-    "videoOutput": null,
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T20:26:26.024Z"
-  },
-  "dbec1d9c7a631b0f9706deede1893142d76b1192d7c6ee90ca183cf11cffa731": {
-    "fileName": "P1466414.jpg",
-    "filePath": "input/P1466414.jpg",
-    "fileHash": "dbec1d9c7a631b0f9706deede1893142d76b1192d7c6ee90ca183cf11cffa731",
-    "fileSize": 1057715,
-    "fileModified": "2024-10-29T04:15:36.000Z",
-    "processedAt": "2025-10-03T20:32:59.633Z",
-    "videoOutput": "./output/1759523579628_P1466414_halloween.mp4",
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T20:32:59.633Z"
-  },
-  "9cd142d9535ef5d2b309522cbe07560e953f7b613712a079adef8d4574f2b8e6": {
-    "fileName": "P1466307.jpg",
-    "filePath": "input/P1466307.jpg",
-    "fileHash": "9cd142d9535ef5d2b309522cbe07560e953f7b613712a079adef8d4574f2b8e6",
-    "fileSize": 1801756,
-    "fileModified": "2024-10-29T04:14:52.000Z",
-    "processedAt": "2025-10-03T20:33:30.529Z",
-    "videoOutput": "./output/1759523610516_P1466307_halloween.mp4",
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T20:33:30.529Z"
-  },
-  "03a2700ad88675f6bdc66f4f0ea6a91e4e1f14850b381e55274f25badd713374": {
-    "fileName": "P1466297.jpg",
-    "filePath": "input/P1466297.jpg",
-    "fileHash": "03a2700ad88675f6bdc66f4f0ea6a91e4e1f14850b381e55274f25badd713374",
-    "fileSize": 1315686,
-    "fileModified": "2024-10-29T04:14:46.000Z",
-    "processedAt": "2025-10-03T20:34:44.180Z",
-    "videoOutput": "./output/1759523684168_P1466297_halloween.mp4",
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T20:34:44.180Z"
-  },
-  "952afd5a8a74cbe69afe420a89b84b1558697066d793dc6a6ebb2d40440fc6e6": {
-    "fileName": "CIMG6332.jpg",
-    "filePath": "input/CIMG6332.jpg",
-    "fileHash": "952afd5a8a74cbe69afe420a89b84b1558697066d793dc6a6ebb2d40440fc6e6",
-    "fileSize": 1415641,
-    "fileModified": "2024-10-28T00:22:04.000Z",
-    "processedAt": "2025-10-03T20:35:24.608Z",
-    "videoOutput": "./output/1759523724600_CIMG6332_halloween.mp4",
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T20:35:24.608Z"
-  },
-  "4980e74b350023e36d4fb85dc2785efe03eca42ec40fa138c2b2d9680e5c9c0d": {
-    "fileName": "CIMG6281.jpg",
-    "filePath": "input/CIMG6281.jpg",
-    "fileHash": "4980e74b350023e36d4fb85dc2785efe03eca42ec40fa138c2b2d9680e5c9c0d",
-    "fileSize": 1451305,
-    "fileModified": "2024-10-28T00:21:50.000Z",
-    "processedAt": "2025-10-03T20:37:03.721Z",
-    "videoOutput": "./output/1759523823711_CIMG6281_halloween.mp4",
-    "status": "completed",
-    "stage": "completed",
-    "stageAt": "2025-10-03T20:37:03.721Z"
-  },
-  "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753": {
-    "fileName": "CIMG6283.jpg",
-    "filePath": "input/CIMG6283.jpg",
-    "fileHash": "669c3f3ce166ce01bed3e8fd0002915cdf50ddfc612361b79f31a7a35ca4a753",
+  "1123e46522b72f9f577c615ed689b92c067333b422d05343c516c44207947f64": {
+    "fileName": "Image_10.jpg",
+    "filePath": "input/Image_10.jpg",
+    "fileHash": "1123e46522b72f9f577c615ed689b92c067333b422d05343c516c44207947f64",
     "status": "processing",
     "stage": "queued",
-    "stageAt": "2025-10-03T20:38:00.474Z"
+    "stageAt": "2025-10-14T13:01:45.070Z"
+  },
+  "76a027bafd8dbb3725caeaf4ec427eca91329f521186085ed6afb0a1e538fa0a": {
+    "fileName": "Image_06.jpg",
+    "filePath": "input/Image_06.jpg",
+    "fileHash": "76a027bafd8dbb3725caeaf4ec427eca91329f521186085ed6afb0a1e538fa0a",
+    "fileSize": 185714,
+    "fileModified": "2025-10-04T21:05:00.100Z",
+    "processedAt": "2025-10-14T13:06:22.878Z",
+    "videoOutput": "./output/1760447182869_Image_06_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-14T13:06:22.878Z",
+    "runId": "2025-10-14T13-03-54-618Z_Image_06.jpg"
+  },
+  "81ee25c41668218e2fc78d3e4696560de1cdde2f46d18a4e214f1ba9149aa831": {
+    "fileName": "Image_12.jpg",
+    "filePath": "input/Image_12.jpg",
+    "fileHash": "81ee25c41668218e2fc78d3e4696560de1cdde2f46d18a4e214f1ba9149aa831",
+    "fileSize": 171263,
+    "fileModified": "2025-10-04T21:04:57.739Z",
+    "processedAt": "2025-10-14T13:06:39.079Z",
+    "videoOutput": "./output/1760447199062_Image_12_halloween.mp4",
+    "status": "completed",
+    "stage": "completed",
+    "stageAt": "2025-10-14T13:06:39.079Z",
+    "runId": "2025-10-14T13-03-54-620Z_Image_12.jpg"
+  },
+  "eff4202e0e22917bfed9678ddf850d619991bc3a461c44286a5685ef3fec8562": {
+    "fileName": "Image_08.jpg",
+    "filePath": "input/Image_08.jpg",
+    "fileHash": "eff4202e0e22917bfed9678ddf850d619991bc3a461c44286a5685ef3fec8562",
+    "status": "processing",
+    "stage": "queued",
+    "stageAt": "2025-10-14T13:06:50.091Z"
   }
 }

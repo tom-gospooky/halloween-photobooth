@@ -30,7 +30,7 @@ export class PhotoAnalysisService {
     return "Transform this Halloween photo into a spooky 'Haunted High School' scene with supernatural elements, floating objects, and eerie lighting effects. Duration: 8 seconds.";
   }
 
-  async generateDualPrompts(imagePath) {
+  async generateDualPrompts(imagePath, options = {}) {
     try {
       const masterPrompt = this.getMasterPrompt();
 
@@ -42,7 +42,7 @@ export class PhotoAnalysisService {
 
       const imageBase64 = imageBuffer.toString('base64');
 
-      const result = await this.gemini25Model.generateContent([
+      const inputMessages = [
         masterPrompt,
         {
           inlineData: {
@@ -50,7 +50,33 @@ export class PhotoAnalysisService {
             mimeType: 'image/jpeg'
           }
         }
-      ]);
+      ];
+
+      // Log raw Gemini request
+      let callId = null;
+      if (options.apiLogger) {
+        try {
+          callId = options.apiLogger.apiRequest(
+            'gemini',
+            'models/gemini-2.5-flash-preview-09-2025:generateContent',
+            inputMessages
+          );
+        } catch {}
+      }
+
+      const result = await this.gemini25Model.generateContent(inputMessages);
+
+      // Log raw Gemini response (safe extract)
+      if (options.apiLogger) {
+        try {
+          const safeResp = {
+            text: (result?.response?.text && result.response.text()) || null,
+            candidates: result?.response?.candidates || null,
+            promptFeedback: result?.response?.promptFeedback || null
+          };
+          options.apiLogger.apiResponse(callId || 0, safeResp);
+        } catch {}
+      }
 
       const responseText = result.response.text().trim();
 

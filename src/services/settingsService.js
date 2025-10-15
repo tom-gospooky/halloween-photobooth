@@ -11,9 +11,9 @@ export class SettingsService {
   getDefaultSettings() {
     return {
       // Simplified settings for WAN 2.5 Preview only
-      resolution: '1080p',          // '480p' | '720p' | '1080p'
+      resolution: '480p',          // '480p' | '720p' | '1080p'
       duration: '5',                // '5' | '10' seconds
-      seedreamImageSize: 'auto_2K', // 'auto' | 'auto_2K' | 'auto_4K' | 'square_hd' | 'landscape_16_9' | 'portrait_16_9'
+      seedreamImageSize: 'landscape_16_9', // 'auto' | 'auto_2K' | 'auto_4K' | 'square_hd' | 'landscape_16_9' | 'portrait_16_9'
       playbackRate: 1.0             // 0.2 - 2.0
 
       // Aspect ratio is auto-detected from input image
@@ -115,12 +115,26 @@ export class SettingsService {
 
   async setSeedreamImageSize(size) {
     const validSizes = ['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3'];
-    if (!validSizes.includes(size)) {
-      console.warn(`⚠️  Invalid seedream image size: ${size}`);
-      return false;
+
+    // Support custom object: { width, height }
+    if (this.isObject(size)) {
+      const { width, height } = size;
+      if (!this.isValidCustomImageSize(size)) {
+        console.warn(`⚠️  Invalid custom seedream image size: ${JSON.stringify(size)}`);
+        return false;
+      }
+      this.settings.seedreamImageSize = { width: Number(width), height: Number(height) };
+      return this.save(this.settings);
     }
-    this.settings.seedreamImageSize = size;
-    return this.save(this.settings);
+
+    // Support enum string values
+    if (typeof size === 'string' && validSizes.includes(size)) {
+      this.settings.seedreamImageSize = size;
+      return this.save(this.settings);
+    }
+
+    console.warn(`⚠️  Invalid seedream image size: ${size}`);
+    return false;
   }
 
   async setPlaybackRate(rate) {
@@ -147,10 +161,19 @@ export class SettingsService {
       errors.push('Duration must be 5 or 10 seconds');
     }
 
-    // Validate seedream image size
+    // Validate seedream image size (enum or custom object)
     const validSizes = ['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3'];
-    if (settings.seedreamImageSize && !validSizes.includes(settings.seedreamImageSize)) {
-      errors.push(`Invalid seedream image size: ${settings.seedreamImageSize}. Must be one of: ${validSizes.join(', ')}`);
+    const s = settings.seedreamImageSize;
+    if (typeof s === 'string') {
+      if (!validSizes.includes(s)) {
+        errors.push(`Invalid seedream image size: ${s}. Must be one of: ${validSizes.join(', ')} or a custom object {width,height}`);
+      }
+    } else if (this.isObject(s)) {
+      if (!this.isValidCustomImageSize(s)) {
+        errors.push('Custom seedream image size must be an object {"width": 720-4096, "height": 720-4096}');
+      }
+    } else if (typeof s !== 'undefined') {
+      errors.push('seedreamImageSize must be a string enum or an object {width,height}');
     }
 
     // Validate playback rate
@@ -168,24 +191,38 @@ export class SettingsService {
   // getSchema removed as /api/settings/schema is no longer exposed
 
   deepMerge(target, source) {
-    const output = { ...target };
-    if (this.isObject(target) && this.isObject(source)) {
-      Object.keys(source).forEach(key => {
-        if (this.isObject(source[key])) {
-          if (!(key in target)) {
-            Object.assign(output, { [key]: source[key] });
-          } else {
-            output[key] = this.deepMerge(target[key], source[key]);
-          }
-        } else {
-          Object.assign(output, { [key]: source[key] });
-        }
-      });
+    // If either is not an object, prefer source
+    if (!this.isObject(target) || !this.isObject(source)) {
+      return this.isObject(source) ? { ...source } : source;
     }
+
+    const output = { ...target };
+    Object.keys(source).forEach(key => {
+      const sVal = source[key];
+      const tVal = target[key];
+      if (this.isObject(sVal)) {
+        // If target is not an object, replace entirely
+        output[key] = this.isObject(tVal) ? this.deepMerge(tVal, sVal) : { ...sVal };
+      } else {
+        output[key] = sVal;
+      }
+    });
     return output;
   }
 
   isObject(item) {
     return item && typeof item === 'object' && !Array.isArray(item);
+  }
+
+  isValidCustomImageSize(val) {
+    if (!this.isObject(val)) return false;
+    const width = Number(val.width);
+    const height = Number(val.height);
+    if (!Number.isFinite(width) || !Number.isFinite(height)) return false;
+    // Allow 720–4096 to support common 1280x720
+    if (width < 720 || width > 4096) return false;
+    if (height < 720 || height > 4096) return false;
+    // Round to integers
+    return true;
   }
 }

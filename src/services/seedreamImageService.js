@@ -65,45 +65,100 @@ export class SeedreamImageService {
       const sanitizedInstruction = this.sanitizeImageEditPrompt(editInstruction);
       // Keep logs minimal per image — no extra details
 
-      // Upload image to FAL storage first (Seedream requires public URLs, not data URIs)
-      // Upload without extra chatter
-
-      // Read image as buffer and create File with proper name/type
+      // Prefer direct data URI submission; fallback to storage upload only if required
+      // Read image as buffer and compute data URI
       const imgBuffer = fs.readFileSync(imagePath);
       const mimeType = this.getMimeTypeFromPath(imagePath);
       const ext = path.extname(imagePath) || '.jpg';
       const basename = path.basename(imagePath, ext);
       const filename = `${basename}${ext}`;
-
-      // Create File object with proper name and MIME type (Node 18+)
-      const file = new File([imgBuffer], filename, { type: mimeType });
-      const imageUrl = await fal.storage.upload(file);
-      //
+      const dataUri = `data:${mimeType};base64,${imgBuffer.toString('base64')}`;
 
       // Get image dimensions for logging
       // const dimensions = await getImageDimensions(imagePath); // kept for future use
 
-      // Get image size from settings (defaults to "auto")
-      const imageSize = this.settingsService?.getSeedreamImageSize() || "auto";
+      // Get image size from settings (defaults to "auto"). Supports enum or custom object.
+      let imageSize = this.settingsService?.getSeedreamImageSize() || "auto";
+      const validEnums = new Set(['auto', 'auto_2K', 'auto_4K', 'square_hd', 'landscape_16_9', 'portrait_16_9', 'landscape_4_3', 'portrait_4_3']);
+      if (typeof imageSize === 'string') {
+        if (!validEnums.has(imageSize)) imageSize = 'auto';
+      } else if (imageSize && typeof imageSize === 'object') {
+        // Keep as-is if custom object
+      } else {
+        imageSize = 'auto';
+      }
 
       //
 
-      // Build input with auto-detected settings
-      const input = {
-        image_urls: [imageUrl],  // Use FAL-hosted URL, not data URI
-        prompt: sanitizedInstruction,
-        image_size: imageSize,
-        num_images: 1,  // Always generate 1 image (simplified)
-        enable_safety_checker: false  // Disable for creative Halloween content
+      // Helper to execute Seedream request with a given image reference
+      const runSeedream = async (imageRef) => {
+        const input = {
+          image_urls: [imageRef],
+          prompt: sanitizedInstruction,
+          image_size: imageSize,
+          num_images: 1,
+          enable_safety_checker: false
+        };
+        let callId = null;
+        try {
+          if (options.apiLogger) {
+            callId = options.apiLogger.apiRequest('fal_seedream', 'fal-ai/bytedance/seedream/v4/edit', { input });
+          }
+        } catch {}
+        const result = await fal.subscribe('fal-ai/bytedance/seedream/v4/edit', { input, logs: false });
+        try { options.apiLogger && options.apiLogger.apiResponse(callId || 0, result); } catch {}
+        return result;
       };
+      let result;
+      const inputMode = String(process.env.SEEDREAM_INPUT_MODE || 'auto').toLowerCase();
 
-      // Call Seedream v4 Edit API with correct parameters
-      //
+      if (inputMode === 'upload') {
+        // Force upload path
+        const file = new File([imgBuffer], filename, { type: mimeType });
+        let uploadCallId = null;
+        try {
+          if (options.apiLogger) {
+            uploadCallId = options.apiLogger.apiRequest('fal_storage', 'fal.storage.upload', {
+              filename,
+              mimeType,
+              size: imgBuffer.length,
+              fileBase64: imgBuffer.toString('base64')
+            });
+          }
+        } catch {}
+        const imageUrl = await fal.storage.upload(file);
+        try { options.apiLogger && options.apiLogger.apiResponse(uploadCallId || 0, { url: imageUrl }); } catch {}
+        result = await runSeedream(imageUrl);
+      } else if (inputMode === 'base64') {
+        // Force base64 path (no upload fallback)
+        result = await runSeedream(dataUri);
+      } else {
+        // auto: try base64 then fallback to upload if needed
+        try {
+          result = await runSeedream(dataUri);
+        } catch (primaryErr) {
+          const status = primaryErr?.response?.status || primaryErr?.cause?.response?.status;
+          const msg = (primaryErr?.message || '').toLowerCase();
+          const shouldFallback = status === 400 || status === 415 || status === 422 || /url|image_urls|invalid|unsupported/.test(msg);
+          if (!shouldFallback) throw primaryErr;
 
-      const result = await fal.subscribe('fal-ai/bytedance/seedream/v4/edit', {
-        input,
-        logs: false
-      });
+          const file = new File([imgBuffer], filename, { type: mimeType });
+          let uploadCallId = null;
+          try {
+            if (options.apiLogger) {
+              uploadCallId = options.apiLogger.apiRequest('fal_storage', 'fal.storage.upload', {
+                filename,
+                mimeType,
+                size: imgBuffer.length,
+                fileBase64: imgBuffer.toString('base64')
+              });
+            }
+          } catch {}
+          const imageUrl = await fal.storage.upload(file);
+          try { options.apiLogger && options.apiLogger.apiResponse(uploadCallId || 0, { url: imageUrl }); } catch {}
+          result = await runSeedream(imageUrl);
+        }
+      }
       //
 
       // Extract image URL from response - FAL API returns images directly in result
@@ -112,8 +167,6 @@ export class SeedreamImageService {
         || result?.data?.image?.url                   // Alternative structure
         || result?.data?.output?.[0]?.url            // Legacy structure
         || result?.data?.url;                        // Direct URL
-
-      //
 
       if (!url) {
         throw new Error('No image URL in Seedream response');

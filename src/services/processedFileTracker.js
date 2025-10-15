@@ -87,7 +87,7 @@ export class ProcessedFileTracker {
     return false;
   }
 
-  async markFileAsProcessed(filePath, fileName, videoOutputPath = null) {
+  async markFileAsProcessed(filePath, fileName, videoOutputPath = null, extra = {}) {
     try {
       const fileHash = this.generateFileHash(filePath);
       if (!fileHash) {
@@ -106,7 +106,8 @@ export class ProcessedFileTracker {
         videoOutput: videoOutputPath,
         status: 'completed',
         stage: 'completed',
-        stageAt: new Date().toISOString()
+        stageAt: new Date().toISOString(),
+        ...(extra && typeof extra === 'object' ? extra : {})
       };
 
       this.processedFiles.set(fileHash, record);
@@ -116,7 +117,7 @@ export class ProcessedFileTracker {
     }
   }
 
-  async markFileAsProcessing(filePath, fileName) {
+  async markFileAsProcessing(filePath, fileName, extra = {}) {
     try {
       const fileHash = this.generateFileHash(filePath);
       if (!fileHash) return;
@@ -132,7 +133,8 @@ export class ProcessedFileTracker {
         videoOutput: null,
         status: 'processing',
         stage: 'queued',
-        stageAt: new Date().toISOString()
+        stageAt: new Date().toISOString(),
+        ...(extra && typeof extra === 'object' ? extra : {})
       };
 
       this.processedFiles.set(fileHash, record);
@@ -142,7 +144,7 @@ export class ProcessedFileTracker {
     }
   }
 
-  async setProcessingStage(filePath, _fileName, stage) {
+  async setProcessingStage(filePath, _fileName, stage, extra = {}) {
     try {
       const fileHash = this.generateFileHash(filePath);
       if (!fileHash) return;
@@ -156,6 +158,9 @@ export class ProcessedFileTracker {
 
       existing.stage = stage;
       existing.stageAt = new Date().toISOString();
+      if (extra && typeof extra === 'object') {
+        for (const [k, v] of Object.entries(extra)) existing[k] = v;
+      }
       // Keep existing processedAt/file size if present
       this.processedFiles.set(fileHash, existing);
       await this.saveProcessedFiles();

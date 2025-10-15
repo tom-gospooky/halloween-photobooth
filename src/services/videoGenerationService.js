@@ -42,7 +42,11 @@ export class VideoGenerationService {
       try { progress.onImageEditStart && progress.onImageEditStart(); } catch {}
       //
       const imageEditStart = Date.now();
-      const editedImagePath = await this.imageEditService.editImage(originalImagePath, imageEditPrompt, { logger: progress.logger });
+      const editedImagePath = await this.imageEditService.editImage(
+        originalImagePath,
+        imageEditPrompt,
+        { logger: progress.logger, apiLogger: progress.apiLogger }
+      );
       try { progress.onImageEditComplete && progress.onImageEditComplete(editedImagePath); } catch {}
       timing.imageEdit = (Date.now() - imageEditStart) / 1000;
       //
@@ -51,7 +55,12 @@ export class VideoGenerationService {
       //
       try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
-      const videoPath = await this.generateVideo(veoPrompt, editedImagePath, originalFileName, { logger: progress.logger });
+      const videoPath = await this.generateVideo(
+        veoPrompt,
+        editedImagePath,
+        originalFileName,
+        { logger: progress.logger, apiLogger: progress.apiLogger }
+      );
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;
       //
       try { progress.onVideoComplete && progress.onVideoComplete(videoPath); } catch {}
@@ -71,7 +80,12 @@ export class VideoGenerationService {
       // Fallback to original workflow without image editing
       try { progress.onVideoStart && progress.onVideoStart(); } catch {}
       const videoGenStart = Date.now();
-      const videoPath = await this.generateVideo(veoPrompt, originalImagePath, originalFileName, { logger: progress.logger });
+      const videoPath = await this.generateVideo(
+        veoPrompt,
+        originalImagePath,
+        originalFileName,
+        { logger: progress.logger, apiLogger: progress.apiLogger }
+      );
       timing.videoGeneration = (Date.now() - videoGenStart) / 1000;
       timing.imageEdit = 0; // Failed, so 0 time
 
@@ -114,7 +128,11 @@ export class VideoGenerationService {
 
       //
 
-      const result = await this.wan25Service.generateVideo(geminiOutputText, imagePath, { ...genOptions, logger: options.logger });
+      const result = await this.wan25Service.generateVideo(
+        geminiOutputText,
+        imagePath,
+        { ...genOptions, logger: options.logger, apiLogger: options.apiLogger }
+      );
 
       if (result.success) {
         // Caller logs completion
