@@ -583,6 +583,39 @@ class HalloweenPhotobooth {
         }
     }
 
+    getVideoLabel(videoId) {
+        if (!videoId) return '—';
+        const video = this.videoLookup.get(videoId) || this.allVideos.find(v => v.id === videoId);
+        return video ? video.name : '—';
+    }
+
+    formatBytes(bytes) {
+        if (!Number.isFinite(bytes) || bytes <= 0) return '--';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let value = bytes;
+        let unitIndex = 0;
+        while (value >= 1024 && unitIndex < units.length - 1) {
+            value /= 1024;
+            unitIndex++;
+        }
+        return `${value.toFixed(unitIndex === 0 ? 0 : 1)}${units[unitIndex]}`;
+    }
+
+    renderStatCard({ icon = '', title, value, valueClass = '', details = [] }) {
+        const detailHtml = (details || [])
+            .filter(Boolean)
+            .map(line => `<div class="system-card-detail">${line}</div>`)
+            .join('');
+        const iconHtml = icon ? `<span class="system-card-icon">${icon}</span>` : '';
+        return `
+            <div class="system-card">
+                <div class="system-card-header">${iconHtml}<span>${title}</span></div>
+                <div class="system-card-value ${valueClass}">${value ?? '—'}</div>
+                ${detailHtml}
+            </div>
+        `;
+    }
+
     normalizeScreensaverPattern(pattern) {
         const raw = pattern || {};
         const enabled = raw.enabled !== false;
@@ -1591,54 +1624,92 @@ class HalloweenPhotobooth {
             const stats = await statsResponse.json();
             const status = await statusResponse.json();
 
-            // Intelligent data processing
             const processedCount = status.fileWatcher?.processedCount || 0;
             const isRunning = status.status === 'running';
             const fileWatcherActive = status.fileWatcher?.isRunning || false;
+            const memoryUsed = stats.memory?.heapUsed || 0;
+            const memoryTotal = stats.memory?.heapTotal || 0;
+            const uptime = stats.uptime || '—';
 
-            // Format memory usage
-            const memoryMB = stats.memory ? Math.round(stats.memory.heapUsed / 1024 / 1024) : 0;
-            const memoryTotal = stats.memory ? Math.round(stats.memory.heapTotal / 1024 / 1024) : 0;
+            const totalVideos = this.allVideos.length;
+            const disabledVideos = this.disabledVideos.size;
+            const totalOutputs = this.getOutputVideos().length;
+            const queueActive = this.videoQueue.length;
 
-            // Color coding based on status
-            const statusColor = isRunning ? 'text-green-500' : 'text-red-500';
-            const watcherColor = fileWatcherActive ? 'text-green-500' : 'text-yellow-500';
-            const modeColor = this.isPlayingScreensaver ? 'text-purple-500' : 'text-halloween-orange';
+            const currentOutputName = this.getVideoLabel(this.currentOutputId);
+            const lastOutputName = this.getVideoLabel(this.lastOutputId);
+            const currentScreensaverName = this.getVideoLabel(this.currentScreensaverId);
+            const lastScreensaverName = this.getVideoLabel(this.lastScreensaverId);
 
-            // Queue health indicator
-            const queueHealth = this.videoQueue.length > 0 ? 'text-green-500' : 'text-yellow-500';
-            const queueText = this.videoQueue.length > 0 ? `${this.videoQueue.length} active` : 'Empty';
+            const isPlaying = this.video && !this.video.paused;
+            const modeLabel = this.isPlayingScreensaver ? 'Screensaver' : (isPlaying ? 'Playing' : 'Paused');
+            const modeIcon = this.isPlayingScreensaver ? '🌙' : (isPlaying ? '▶️' : '⏸');
+            const modeColor = this.isPlayingScreensaver ? 'text-purple-400' : (isPlaying ? 'text-halloween-orange' : 'text-gray-300');
+
+            const queueValue = queueActive > 0 ? `${queueActive} active` : 'Empty';
+            const queueColor = queueActive > 0 ? 'text-green-400' : 'text-yellow-400';
+
+            const statusColor = isRunning ? 'text-green-400' : 'text-red-400';
+            const watcherText = fileWatcherActive ? 'Watching input' : 'Watcher inactive';
+            const watcherColor = fileWatcherActive ? 'text-green-300' : 'text-yellow-400';
+
+            const cards = [
+                {
+                    icon: '📼',
+                    title: 'Total Videos',
+                    value: totalVideos,
+                    details: [
+                        `${disabledVideos} disabled`,
+                        `${this.screensaverVideos.length} screensavers`
+                    ]
+                },
+                {
+                    icon: '🧟',
+                    title: 'Queue Status',
+                    value: queueValue,
+                    valueClass: queueColor,
+                    details: [`${totalOutputs} outputs in library`]
+                },
+                {
+                    icon: modeIcon,
+                    title: 'Current Mode',
+                    value: modeLabel,
+                    valueClass: modeColor,
+                    details: [
+                        this.isPlayingScreensaver ? `Now: ${currentScreensaverName}` : `Now: ${currentOutputName}`,
+                        queueActive > 0 ? `Position: ${this.currentVideoIndex + 1}/${queueActive}` : null
+                    ]
+                },
+                {
+                    icon: '🕒',
+                    title: 'Recent Playback',
+                    value: lastOutputName,
+                    details: [`Screensaver: ${lastScreensaverName}`]
+                },
+                {
+                    icon: '📁',
+                    title: 'Processed Files',
+                    value: processedCount,
+                    details: ['from input folder']
+                },
+                {
+                    icon: isRunning ? '✅' : '⚠️',
+                    title: 'System Status',
+                    value: isRunning ? 'Online' : 'Offline',
+                    valueClass: statusColor,
+                    details: [`<span class="${watcherColor}">${watcherText}</span>`]
+                },
+                {
+                    icon: '⏱',
+                    title: 'Uptime',
+                    value: uptime,
+                    details: [`${this.formatBytes(memoryUsed)} / ${this.formatBytes(memoryTotal)}`]
+                }
+            ];
 
             this.statsContent.innerHTML = `
-                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
-                    <div class="text-xs text-gray-400 mb-1">Total Videos</div>
-                    <div class="text-lg font-semibold text-white">${this.allVideos.length}</div>
-                    <div class="text-xs text-gray-500 mt-1">${this.disabledVideos.size} disabled</div>
-                </div>
-                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
-                    <div class="text-xs text-gray-400 mb-1">Queue Status</div>
-                    <div class="text-lg font-semibold ${queueHealth}">${queueText}</div>
-                    <div class="text-xs text-gray-500 mt-1">${this.allVideos.length} total</div>
-                </div>
-                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
-                    <div class="text-xs text-gray-400 mb-1">Current Mode</div>
-                    <div class="text-lg font-semibold ${modeColor}">${this.isPlayingScreensaver ? '🌙 Screensaver' : '▶️ Playing'}</div>
-                    <div class="text-xs text-gray-500 mt-1">${this.videoQueue.length > 0 ? `${this.currentVideoIndex + 1}/${this.videoQueue.length}` : '0/0'}</div>
-                </div>
-                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
-                    <div class="text-xs text-gray-400 mb-1">Processed Files</div>
-                    <div class="text-lg font-semibold text-white">${processedCount}</div>
-                    <div class="text-xs text-gray-500 mt-1">from input folder</div>
-                </div>
-                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
-                    <div class="text-xs text-gray-400 mb-1">System Status</div>
-                    <div class="text-lg font-semibold ${statusColor}">${isRunning ? '✓ Running' : '✗ Stopped'}</div>
-                    <div class="text-xs ${watcherColor} mt-1">${fileWatcherActive ? '👁️ Watching files' : '⚠️ Watcher inactive'}</div>
-                </div>
-                <div class="bg-gray-700/50 rounded p-3 hover:bg-gray-700/70 transition-colors">
-                    <div class="text-xs text-gray-400 mb-1">Uptime</div>
-                    <div class="text-lg font-semibold text-white">${stats.uptime || 'Unknown'}</div>
-                    <div class="text-xs text-gray-500 mt-1">${memoryMB}MB / ${memoryTotal}MB</div>
+                <div class="system-stats-grid">
+                    ${cards.map(card => this.renderStatCard(card)).join('')}
                 </div>
             `;
 
@@ -1648,10 +1719,14 @@ class HalloweenPhotobooth {
         } catch (error) {
             console.error('Failed to load system stats:', error);
             this.statsContent.innerHTML = `
-                <div class="bg-gray-700/50 rounded p-3 col-span-2 text-center">
-                    <div class="text-xs text-gray-400 mb-2">System Status</div>
-                    <div class="text-lg font-semibold text-red-500">⚠️ Error Loading Stats</div>
-                    <div class="text-xs text-gray-500 mt-2">Check console for details</div>
+                <div class="system-stats-grid">
+                    ${this.renderStatCard({
+                        icon: '⚠️',
+                        title: 'System Status',
+                        value: 'Error loading stats',
+                        valueClass: 'text-red-400',
+                        details: ['Check console for details']
+                    })}
                 </div>
             `;
         }

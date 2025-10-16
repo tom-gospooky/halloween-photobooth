@@ -1009,6 +1009,53 @@ body {
     left: 0;
 }
 
+.system-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.system-card {
+    background: rgba(55, 65, 81, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    padding: 12px;
+    transition: background 0.2s ease, border 0.2s ease;
+}
+
+.system-card:hover {
+    background: rgba(75, 85, 99, 0.5);
+    border-color: rgba(255, 107, 53, 0.35);
+}
+
+.system-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #cbd5f5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.system-card-icon {
+    font-size: 14px;
+}
+
+.system-card-value {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 6px 0 4px;
+    color: #f8fafc;
+}
+
+.system-card-detail {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
 /* Hide UI mode - hides all UI elements except video and overlay */
 body.hide-ui #status-indicator,
 body.hide-ui #control-panel,
