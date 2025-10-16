@@ -14,7 +14,12 @@ export class SettingsService {
       resolution: '480p',          // '480p' | '720p' | '1080p'
       duration: '5',                // '5' | '10' seconds
       seedreamImageSize: 'landscape_16_9', // 'auto' | 'auto_2K' | 'auto_4K' | 'square_hd' | 'landscape_16_9' | 'portrait_16_9'
-      playbackRate: 1.0             // 0.2 - 2.0
+      playbackRate: 1.0,            // 0.2 - 2.0
+      screensaverPattern: {
+        enabled: true,
+        outputsPerBlock: 2,
+        screensaversPerBlock: 1
+      }
 
       // Aspect ratio is auto-detected from input image
       // Image editing always uses Seedream
@@ -29,6 +34,7 @@ export class SettingsService {
         const data = JSON.parse(raw);
         // Deep merge with defaults to ensure all fields exist
         this.settings = this.deepMerge(this.getDefaultSettings(), data);
+        this.settings.screensaverPattern = this.sanitizeScreensaverPattern(this.settings.screensaverPattern);
         this.isLoaded = true;
         console.log('✅ Settings loaded from settings.json');
         return true;
@@ -46,7 +52,9 @@ export class SettingsService {
   }
 
   getSettings() {
-    return JSON.parse(JSON.stringify(this.settings)); // Deep clone
+    const cloned = JSON.parse(JSON.stringify(this.settings)); // Deep clone
+    cloned.screensaverPattern = this.sanitizeScreensaverPattern(cloned.screensaverPattern);
+    return cloned;
   }
 
   getDuration() {
@@ -66,23 +74,52 @@ export class SettingsService {
     return isNaN(v) ? 1.0 : Math.min(2.0, Math.max(0.2, v));
   }
 
+  getScreensaverPattern() {
+    return this.sanitizeScreensaverPattern(this.settings.screensaverPattern);
+  }
+
+  sanitizeScreensaverPattern(pattern) {
+    const defaults = this.getDefaultSettings().screensaverPattern;
+    if (!this.isObject(pattern)) {
+      return { ...defaults };
+    }
+
+    const enabled = pattern.enabled !== false;
+    const rawOutputs = Number(pattern.outputsPerBlock);
+    const rawScreensavers = Number(pattern.screensaversPerBlock);
+    const outputsPerBlock = Number.isFinite(rawOutputs) ? Math.max(0, Math.floor(rawOutputs)) : 0;
+    const screensaversPerBlock = Number.isFinite(rawScreensavers) ? Math.max(0, Math.floor(rawScreensavers)) : 0;
+
+    return {
+      enabled,
+      outputsPerBlock,
+      screensaversPerBlock
+    };
+  }
+
   async save(newSettings) {
     try {
       // Whitelist keys to prevent stale/dead config from persisting
-      const allowed = ['resolution', 'duration', 'seedreamImageSize', 'playbackRate'];
+      const allowed = ['resolution', 'duration', 'seedreamImageSize', 'playbackRate', 'screensaverPattern'];
       const pruned = {};
       for (const key of allowed) {
         if (newSettings && Object.prototype.hasOwnProperty.call(newSettings, key)) {
-          pruned[key] = newSettings[key];
+          if (key === 'screensaverPattern') {
+            pruned[key] = this.sanitizeScreensaverPattern(newSettings[key]);
+          } else {
+            pruned[key] = newSettings[key];
+          }
         }
       }
       // Merge with current to keep existing values when not provided
       this.settings = this.deepMerge(this.settings, pruned);
+      this.settings.screensaverPattern = this.sanitizeScreensaverPattern(this.settings.screensaverPattern);
       fs.writeFileSync(this.settingsPath, JSON.stringify({
         resolution: this.settings.resolution,
         duration: this.settings.duration,
         seedreamImageSize: this.settings.seedreamImageSize,
-        playbackRate: this.getPlaybackRate()
+        playbackRate: this.getPlaybackRate(),
+        screensaverPattern: this.getScreensaverPattern()
       }, null, 2));
       console.log('✅ Settings saved to settings.json');
       return true;
@@ -147,6 +184,11 @@ export class SettingsService {
     return this.save(this.settings);
   }
 
+  async setScreensaverPattern(pattern) {
+    this.settings.screensaverPattern = this.sanitizeScreensaverPattern(pattern);
+    return this.save(this.settings);
+  }
+
   validate(settings = this.settings) {
     const errors = [];
 
@@ -180,6 +222,17 @@ export class SettingsService {
     const v = Number(settings.playbackRate);
     if (isNaN(v) || v < 0.2 || v > 2.0) {
       errors.push('Playback rate must be a number between 0.2 and 2.0');
+    }
+
+    if (typeof settings.screensaverPattern !== 'undefined') {
+      if (!this.isObject(settings.screensaverPattern)) {
+        errors.push('screensaverPattern must be an object');
+      } else {
+        const sanitized = this.sanitizeScreensaverPattern(settings.screensaverPattern);
+        if (sanitized.screensaversPerBlock === 0 && sanitized.outputsPerBlock === 0 && sanitized.enabled) {
+          errors.push('screensaverPattern must have at least one of outputsPerBlock or screensaversPerBlock greater than 0, or be disabled');
+        }
+      }
     }
 
     return {

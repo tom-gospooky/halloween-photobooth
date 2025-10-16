@@ -1,4 +1,4 @@
-class VideoGlitchTransition {
+export class VideoGlitchTransition {
     constructor(videoElement) {
         this.video = videoElement;
         this.canvas = null;

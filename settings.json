@@ -5,5 +5,10 @@
     "width": 1920,
     "height": 1080
   },
-  "playbackRate": 0.5
+  "playbackRate": 0.5,
+  "screensaverPattern": {
+    "enabled": true,
+    "outputsPerBlock": 2,
+    "screensaversPerBlock": 1
+  }
 }
