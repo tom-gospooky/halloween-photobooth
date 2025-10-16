@@ -1775,14 +1775,14 @@ class HalloweenPhotobooth {
             } else {
                 inputFileList.innerHTML = data.files.map(file => {
                     const derivedStatus = deriveStatus(file);
-                    const statusIcon = derivedStatus === 'completed' ? '✓' :
-                                     derivedStatus === 'processing' ? '⏳' : '○';
-                    const statusColor = derivedStatus === 'completed' ? 'text-green-500' :
-                                       derivedStatus === 'processing' ? 'text-yellow-500' : 'text-gray-400';
-                    const statusLabel = derivedStatus === 'completed' ? 'Completed' :
-                                       derivedStatus === 'processing' ? 'Processing' : 'Pending';
-                    const pillColor = derivedStatus === 'completed' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
-                                     derivedStatus === 'processing' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-gray-400 border-gray-500/30 bg-gray-500/10';
+                    const statusIcon = derivedStatus === 'completed' ? '✓' : derivedStatus === 'processing' ? '⏳' : '○';
+                    const statusColor = derivedStatus === 'completed' ? 'text-green-500' : derivedStatus === 'processing' ? 'text-yellow-500' : 'text-gray-400';
+                    const statusLabel = derivedStatus === 'completed' ? 'Completed' : derivedStatus === 'processing' ? 'Processing' : 'Queued';
+                    const pillColor = derivedStatus === 'completed'
+                        ? 'text-green-400 border-green-500/30 bg-green-500/10'
+                        : derivedStatus === 'processing'
+                            ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'
+                            : 'text-gray-400 border-gray-500/30 bg-gray-500/10';
 
                     const stageMap = {
                         queued: 'Queued',
@@ -1793,35 +1793,43 @@ class HalloweenPhotobooth {
                         completed: 'Completed'
                     };
                     const stageText = stageMap[file.stage] || (derivedStatus === 'processing' ? 'In Progress' : '');
-
-                    const processedTime = file.processedAt ?
-                        new Date(file.processedAt).toLocaleString() : '-';
+                    const processedTime = file.processedAt ? new Date(file.processedAt).toLocaleString() : null;
+                    const retryMeta = file.retries && file.retries > 0
+                        ? `<span class="text-xs text-purple-300">Retries: ${file.retries}</span>`
+                        : '';
+                    const stageMeta = derivedStatus === 'completed'
+                        ? `Processed: ${processedTime || '-'}`
+                        : stageText ? `Stage: ${stageText}` : '';
+                    const retryButton = derivedStatus === 'completed'
+                        ? ''
+                        : `<button class="input-retry-btn" data-filename="${file.filename}">Retry</button>`;
 
                     return `
-                        <div class="bg-gray-700/30 rounded p-2 text-xs hover:bg-gray-700/50 transition-colors">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0">
+                        <div class="input-file-row">
+                            <div class="input-file-main">
+                                <div class="input-file-name">
                                     <span class="${statusColor} font-bold">${statusIcon}</span>
                                     <span class="truncate text-white">${file.filename}</span>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span class="px-2 py-0.5 rounded-full border ${pillColor}">${statusLabel}</span>
-                                    <span class="text-gray-500">${file.sizeFormatted}</span>
+                                <div class="input-file-meta text-xs text-gray-400">
+                                    ${[stageMeta, retryMeta].filter(Boolean).join(' · ')}
                                 </div>
                             </div>
-                            ${file.status === 'processing' ? `
-                                <div class="text-gray-400 mt-1 text-xs ml-6">
-                                    Stage: <span class="text-white/90">${stageText}</span>
-                                </div>
-                            ` : ''}
-                            ${file.status === 'completed' ? `
-                                <div class="text-gray-500 mt-1 text-xs ml-6">
-                                    Processed: ${processedTime}
-                                </div>
-                            ` : ''}
+                            <div class="input-file-actions">
+                                <span class="input-file-badge ${pillColor}">${statusLabel}</span>
+                                <span class="text-xs text-gray-500">${file.sizeFormatted}</span>
+                                ${retryButton}
+                            </div>
                         </div>
                     `;
                 }).join('');
+
+                document.querySelectorAll('.input-retry-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const filename = e.currentTarget.dataset.filename;
+                        this.retryInputFile(filename, e.currentTarget);
+                    });
+                });
             }
         } catch (error) {
             console.error('Failed to load input folder status:', error);
@@ -1829,6 +1837,42 @@ class HalloweenPhotobooth {
     }
 
     // Admin Actions
+
+    async retryInputFile(filename, button) {
+        if (!filename) return;
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Retrying...';
+        }
+
+        try {
+            const response = await fetch('/api/input/retry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename })
+            });
+
+            if (response.ok) {
+                this.updateStatus(`Retry scheduled for ${filename}`);
+                await this.loadInputFolderStatus();
+                if (typeof this.loadOutputVideos === 'function') {
+                    await this.loadOutputVideos();
+                }
+            } else {
+                this.updateStatus(`Failed to retry ${filename}`);
+            }
+        } catch (error) {
+            console.error('Retry failed:', error);
+            this.updateStatus('Retry failed');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Retry';
+            }
+        }
+    }
 
     downloadVideo(videoId) {
         const downloadUrl = `/api/video/${videoId}?download=true`;

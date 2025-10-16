@@ -130,12 +130,17 @@ export class ProcessedFileTracker {
         fileSize: stats.size,
         fileModified: stats.mtime.toISOString(),
         processedAt: new Date().toISOString(),
+        processingStartedAt: new Date().toISOString(),
         videoOutput: null,
         status: 'processing',
         stage: 'queued',
         stageAt: new Date().toISOString(),
         ...(extra && typeof extra === 'object' ? extra : {})
       };
+
+      if (!record.retries) {
+        record.retries = 0;
+      }
 
       this.processedFiles.set(fileHash, record);
       await this.saveProcessedFiles();
@@ -161,6 +166,9 @@ export class ProcessedFileTracker {
       if (extra && typeof extra === 'object') {
         for (const [k, v] of Object.entries(extra)) existing[k] = v;
       }
+      if (!existing.retries) {
+        existing.retries = 0;
+      }
       // Keep existing processedAt/file size if present
       this.processedFiles.set(fileHash, existing);
       await this.saveProcessedFiles();
@@ -169,25 +177,34 @@ export class ProcessedFileTracker {
     }
   }
 
-  isFileCurrentlyProcessing(filePath, _fileName) {
-    const fileHash = this.generateFileHash(filePath);
-    if (!fileHash) return false;
+  isFileCurrentlyProcessing(filePath, _fileName, timeoutMs = 10 * 60 * 1000) {
+    const record = this.getRecordForFile(filePath, _fileName);
+    if (!record) return false;
+    if (record.status !== 'processing') return false;
+    if (!record.stageAt) return true;
 
-    if (this.processedFiles.has(fileHash)) {
-      const record = this.processedFiles.get(fileHash);
-      if (record.status === 'processing') {
-        // Check if processing started more than 10 minutes ago (assume failed)
-        const processingStarted = new Date(record.processedAt);
-        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const stageDate = new Date(record.stageAt);
+    if (Number.isNaN(stageDate.getTime())) return true;
 
-        if (processingStarted < tenMinutesAgo) {
-          return false;
-        }
-        return true;
-      }
+    if (Date.now() - stageDate.getTime() > timeoutMs) {
+      return false;
     }
 
-    return false;
+    return true;
+  }
+
+  getRecordForFile(filePath, _fileName) {
+    const fileHash = this.generateFileHash(filePath);
+    if (fileHash && this.processedFiles.has(fileHash)) {
+      return this.processedFiles.get(fileHash);
+    }
+
+    for (const [, record] of this.processedFiles.entries()) {
+      if (record.filePath === filePath && record.fileName === _fileName) {
+        return record;
+      }
+    }
+    return null;
   }
 
   getProcessedFiles() {
@@ -279,5 +296,61 @@ export class ProcessedFileTracker {
       trackingFile: this.trackingFile,
       trackingFileExists: fs.existsSync(this.trackingFile)
     };
+  }
+
+  async requeueStaleProcessing(maxAgeMs = 10 * 60 * 1000) {
+    const now = Date.now();
+    let changed = 0;
+    for (const [hash, record] of this.processedFiles.entries()) {
+      if (record.status === 'processing') {
+        const stageAt = record.stageAt ? new Date(record.stageAt).getTime() : 0;
+        if (!stageAt || now - stageAt > maxAgeMs) {
+          record.status = 'pending';
+          record.stage = 'queued';
+          record.stageAt = new Date().toISOString();
+          record.processingStartedAt = new Date().toISOString();
+          record.retries = (record.retries || 0) + 1;
+          delete record.runId;
+          this.processedFiles.set(hash, record);
+          changed += 1;
+        }
+      }
+    }
+
+    if (changed > 0) {
+      await this.saveProcessedFiles();
+      console.log(`🔁 Re-queued ${changed} stale processing file(s)`);
+    }
+
+    return changed;
+  }
+
+  async requeueFile(filePath, fileName) {
+    const fileHash = this.generateFileHash(filePath);
+    let record = null;
+    if (fileHash && this.processedFiles.has(fileHash)) {
+      record = this.processedFiles.get(fileHash);
+    } else {
+      record = this.getRecordForFile(filePath, fileName);
+    }
+
+    if (!record) {
+      return false;
+    }
+
+    record.status = 'pending';
+    record.stage = 'queued';
+    record.stageAt = new Date().toISOString();
+    record.processingStartedAt = new Date().toISOString();
+    record.retries = (record.retries || 0) + 1;
+    delete record.runId;
+
+    const hashKey = fileHash || this.generateFileHash(filePath);
+    if (hashKey) {
+      this.processedFiles.set(hashKey, record);
+    }
+
+    await this.saveProcessedFiles();
+    return true;
   }
 }

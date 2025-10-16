@@ -14,6 +14,7 @@ export class FileWatcherService {
     // Simple concurrency control
     this.maxConcurrent = parseInt(process.env.MAX_CONCURRENT_JOBS || '3', 10);
     this.activeTasks = new Set();
+    this.processingTimeoutMs = parseInt(process.env.PROCESSING_TIMEOUT_MS || `${15 * 60 * 1000}`, 10);
   }
 
   async start() {
@@ -63,6 +64,8 @@ export class FileWatcherService {
     if (!this.isRunning) return;
 
     try {
+      await this.fileTracker.requeueStaleProcessing(this.processingTimeoutMs);
+
       const inputFiles = await this.localStorage.getNewInputFiles();
 
       // Determine available slots for processing
@@ -77,7 +80,7 @@ export class FileWatcherService {
 
         // Skip files already processed or in-progress
         if (this.fileTracker.isFileProcessed(file.path, file.name)) continue;
-        if (this.fileTracker.isFileCurrentlyProcessing(file.path, file.name)) continue;
+        if (this.fileTracker.isFileCurrentlyProcessing(file.path, file.name, this.processingTimeoutMs)) continue;
 
         console.log(`🔍 New photo detected: ${file.name}`);
 

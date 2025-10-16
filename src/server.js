@@ -210,6 +210,39 @@ app.post('/api/admin/reset-input', async (req, res) => {
   }
 });
 
+app.post('/api/input/retry', async (req, res) => {
+  try {
+    const { filename } = req.body || {};
+    if (!filename) {
+      return res.status(400).json({ error: 'filename is required' });
+    }
+
+    const inputPath = path.join('./input', filename);
+    if (!fs.existsSync(inputPath)) {
+      return res.status(404).json({ error: 'File not found in input folder' });
+    }
+
+    const tracker = services.fileWatcher?.fileTracker;
+    if (!tracker) {
+      return res.status(503).json({ error: 'File tracker unavailable' });
+    }
+
+    const success = await tracker.requeueFile(inputPath, filename);
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to requeue file' });
+    }
+
+    if (services.fileWatcher?.isRunning) {
+      services.fileWatcher.checkForNewFiles().catch(() => {});
+    }
+
+    res.json({ success: true, message: 'File requeued for processing' });
+  } catch (error) {
+    console.error('Error retrying input file:', error);
+    res.status(500).json({ error: 'Failed to retry file' });
+  }
+});
+
 // Settings API endpoints
 // Get all settings with schema
 app.get('/api/settings', (req, res) => {
@@ -378,25 +411,30 @@ app.get('/api/input-status', async (req, res) => {
         let status = 'pending';
         let processedAt = null;
         let stage = null;
+        let stageAt = null;
+        let retries = 0;
 
         // Use the active file tracker from the watcher
         const tracker = services.fileWatcher?.fileTracker || services.fileWatcher?.processedFileTracker;
+        const processingTimeoutMs = services.fileWatcher?.processingTimeoutMs || 10 * 60 * 1000;
         if (tracker) {
-          if (tracker.isFileCurrentlyProcessing(filePath, filename)) {
-            status = 'processing';
-            const record = Array.from(tracker.processedFiles.values()).find(r => r.fileName === filename);
-            if (record) {
-              stage = record.stage || null;
+          const record = tracker.getRecordForFile(filePath, filename);
+          if (record) {
+            stage = record.stage || stage;
+            stageAt = record.stageAt || null;
+            retries = record.retries || 0;
+            if (record.status === 'completed') {
+              status = 'completed';
+              processedAt = record.processedAt || null;
+            } else if (record.status === 'processing' && tracker.isFileCurrentlyProcessing(filePath, filename, processingTimeoutMs)) {
+              status = 'processing';
+            } else if (record.status === 'processing') {
+              status = 'pending';
+            } else if (record.status) {
+              status = record.status;
             }
           } else if (tracker.isFileProcessed(filePath, filename)) {
             status = 'completed';
-            // Get the processed time
-            const record = Array.from(tracker.processedFiles.values())
-              .find(r => r.fileName === filename);
-            if (record) {
-              processedAt = record.processedAt;
-              stage = record.stage || 'completed';
-            }
           }
         }
 
@@ -408,7 +446,10 @@ app.get('/api/input-status', async (req, res) => {
           modified: stats.mtime,
           status,
           processedAt,
-          stage
+          stage,
+          stageAt,
+          retries,
+          path: filePath
         };
       })
       .sort((a, b) => b.modified - a.modified);
