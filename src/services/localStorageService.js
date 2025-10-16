@@ -9,6 +9,7 @@ export class LocalStorageService {
       output: './output',
       screensaver: './screensaver'
     };
+    this.tempFolder = './temp';
   }
 
   async initialize() {
@@ -26,9 +27,9 @@ export class LocalStorageService {
       }
 
       // Ensure temp directory exists
-      if (!fs.existsSync('./temp')) {
-        fs.mkdirSync('./temp', { recursive: true });
-        console.log('✅ Created temp folder: ./temp');
+      if (!fs.existsSync(this.tempFolder)) {
+        fs.mkdirSync(this.tempFolder, { recursive: true });
+        console.log(`✅ Created temp folder: ${this.tempFolder}`);
       }
 
       this.isInitialized = true;
@@ -233,7 +234,7 @@ export class LocalStorageService {
   }
 
   getFolderPaths() {
-    return { ...this.folders };
+    return { ...this.folders, temp: this.tempFolder };
   }
 
   getStatus() {
@@ -241,8 +242,35 @@ export class LocalStorageService {
       isInitialized: this.isInitialized,
       folders: this.folders,
       folderExists: Object.fromEntries(
-        Object.entries(this.folders).map(([key, path]) => [key, fs.existsSync(path)])
+        [...Object.entries(this.folders), ['temp', this.tempFolder]].map(([key, dirPath]) => [key, fs.existsSync(dirPath)])
       )
     };
+  }
+
+  async cleanupTempDir(maxAgeMs = 2 * 60 * 60 * 1000) {
+    try {
+      if (!fs.existsSync(this.tempFolder)) return 0;
+      const cutoff = Date.now() - maxAgeMs;
+      let removed = 0;
+      for (const entry of fs.readdirSync(this.tempFolder)) {
+        const filePath = path.join(this.tempFolder, entry);
+        try {
+          const stats = fs.statSync(filePath);
+          if (stats.isFile() && stats.mtime.getTime() < cutoff) {
+            fs.unlinkSync(filePath);
+            removed += 1;
+          }
+        } catch (err) {
+          console.warn(`⚠️  Failed to inspect temp file ${entry}:`, err.message);
+        }
+      }
+      if (removed > 0) {
+        console.log(`🧹 Removed ${removed} stale temp file(s)`);
+      }
+      return removed;
+    } catch (error) {
+      console.error('❌ Failed to cleanup temp directory:', error);
+      return 0;
+    }
   }
 }

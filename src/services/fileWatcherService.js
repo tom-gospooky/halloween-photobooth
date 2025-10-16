@@ -15,6 +15,8 @@ export class FileWatcherService {
     this.maxConcurrent = parseInt(process.env.MAX_CONCURRENT_JOBS || '3', 10);
     this.activeTasks = new Set();
     this.processingTimeoutMs = parseInt(process.env.PROCESSING_TIMEOUT_MS || `${15 * 60 * 1000}`, 10);
+    this.tempFileMaxAgeMs = parseInt(process.env.TEMP_FILE_MAX_AGE_MS || `${2 * 60 * 60 * 1000}`, 10);
+    this.lastTempCleanup = 0;
   }
 
   async start() {
@@ -65,6 +67,11 @@ export class FileWatcherService {
 
     try {
       await this.fileTracker.requeueStaleProcessing(this.processingTimeoutMs);
+
+      if (Date.now() - this.lastTempCleanup > this.tempFileMaxAgeMs) {
+        await this.localStorage.cleanupTempDir(this.tempFileMaxAgeMs);
+        this.lastTempCleanup = Date.now();
+      }
 
       const inputFiles = await this.localStorage.getNewInputFiles();
 
