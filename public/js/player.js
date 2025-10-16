@@ -1740,17 +1740,28 @@ class HalloweenPhotobooth {
             const inputFolderStats = document.getElementById('input-folder-stats');
             const inputFileList = document.getElementById('input-file-list');
 
-            // Display summary
-            const pending = data.statusCounts.pending || 0;
-            const processing = data.statusCounts.processing || 0;
-            const completed = data.statusCounts.completed || 0;
+            const deriveStatus = (file) => {
+                if (!file) return 'pending';
+                if (file.stage) {
+                    if (file.stage === 'completed') return 'completed';
+                    if (file.stage === 'queued') return 'pending';
+                    return 'processing';
+                }
+                return file.status || 'pending';
+            };
+
+            const totals = data.files.reduce((acc, file) => {
+                const status = deriveStatus(file);
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, { pending: 0, processing: 0, completed: 0 });
 
             inputFolderStats.innerHTML = `
                 <div class="flex gap-4 text-xs">
                     <span><strong>Total:</strong> ${data.totalFiles}</span>
-                    <span class="text-green-500"><strong>✓</strong> ${completed}</span>
-                    <span class="text-yellow-500"><strong>⏳</strong> ${processing}</span>
-                    <span class="text-gray-400"><strong>○</strong> ${pending}</span>
+                    <span class="text-green-500"><strong>✓</strong> ${totals.completed || 0}</span>
+                    <span class="text-yellow-500"><strong>⏳</strong> ${totals.processing || 0}</span>
+                    <span class="text-gray-400"><strong>○</strong> ${totals.pending || 0}</span>
                 </div>
             `;
 
@@ -1763,14 +1774,15 @@ class HalloweenPhotobooth {
                 `;
             } else {
                 inputFileList.innerHTML = data.files.map(file => {
-                    const statusIcon = file.status === 'completed' ? '✓' :
-                                     file.status === 'processing' ? '⏳' : '○';
-                    const statusColor = file.status === 'completed' ? 'text-green-500' :
-                                       file.status === 'processing' ? 'text-yellow-500' : 'text-gray-400';
-                    const statusLabel = file.status === 'completed' ? 'Completed' :
-                                       file.status === 'processing' ? 'Processing' : 'Pending';
-                    const pillColor = file.status === 'completed' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
-                                     file.status === 'processing' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-gray-400 border-gray-500/30 bg-gray-500/10';
+                    const derivedStatus = deriveStatus(file);
+                    const statusIcon = derivedStatus === 'completed' ? '✓' :
+                                     derivedStatus === 'processing' ? '⏳' : '○';
+                    const statusColor = derivedStatus === 'completed' ? 'text-green-500' :
+                                       derivedStatus === 'processing' ? 'text-yellow-500' : 'text-gray-400';
+                    const statusLabel = derivedStatus === 'completed' ? 'Completed' :
+                                       derivedStatus === 'processing' ? 'Processing' : 'Pending';
+                    const pillColor = derivedStatus === 'completed' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
+                                     derivedStatus === 'processing' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-gray-400 border-gray-500/30 bg-gray-500/10';
 
                     const stageMap = {
                         queued: 'Queued',
@@ -1780,7 +1792,7 @@ class HalloweenPhotobooth {
                         finalizing: 'Finalizing',
                         completed: 'Completed'
                     };
-                    const stageText = stageMap[file.stage] || (file.status === 'processing' ? 'Processing' : '');
+                    const stageText = stageMap[file.stage] || (derivedStatus === 'processing' ? 'In Progress' : '');
 
                     const processedTime = file.processedAt ?
                         new Date(file.processedAt).toLocaleString() : '-';
